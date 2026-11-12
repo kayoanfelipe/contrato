@@ -262,10 +262,18 @@ const URL_ = 'https://kqucpivagntlmukfghhg.supabase.co';
 const KEY = 'sb_publishable_yFxha4btvFg2bftRPaPhTA_kZgUNhAV';
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const brl=n=>Number(n).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
-const extenso=(n)=>{
-  const m={30000:'trinta mil reais',2500:'dois mil e quinhentos reais',25500:'vinte e cinco mil e quinhentos reais',15000:'quinze mil reais',1250:'mil duzentos e cinquenta reais',27000:'vinte e sete mil reais'};
-  return m[Math.round(n)]? ` (${m[Math.round(n)]})`:'';
-};
+/* Valor em reais por extenso, para qualquer valor (com centavos). */
+const EXT_U=['','um','dois','três','quatro','cinco','seis','sete','oito','nove','dez','onze','doze','treze','quatorze','quinze','dezesseis','dezessete','dezoito','dezenove'];
+const EXT_D=['','','vinte','trinta','quarenta','cinquenta','sessenta','setenta','oitenta','noventa'];
+const EXT_C=['','cento','duzentos','trezentos','quatrocentos','quinhentos','seiscentos','setecentos','oitocentos','novecentos'];
+function ext999(n){ if(n===100) return 'cem'; const c=Math.floor(n/100), r=n%100, p=[]; if(c) p.push(EXT_C[c]);
+  if(r) p.push(r<20?EXT_U[r]:EXT_D[Math.floor(r/10)]+(r%10?' e '+EXT_U[r%10]:'')); return p.join(' e '); }
+function extInt(n){ if(!n) return 'zero'; const g=[[Math.floor(n/1e6),'mi'],[Math.floor(n/1000)%1000,'mil'],[n%1000,'']].filter(x=>x[0]);
+  return g.map(([v,t],i)=>{ const w=t==='mi'?(v===1?'um milhão':ext999(v)+' milhões'):t==='mil'?(v===1?'mil':ext999(v)+' mil'):ext999(v);
+    if(i===0) return w; return ((v<100||v%100===0)?' e ':' ')+w; }).join(''); }
+function extReais(v){ const t=Math.round(Number(v)*100); if(!isFinite(t)||t<=0) return ''; const r=Math.floor(t/100), c=t%100, p=[];
+  if(r) p.push(extInt(r)+(r>=1e6&&r%1e6===0?' de reais':r===1?' real':' reais')); if(c) p.push(extInt(c)+(c===1?' centavo':' centavos')); return p.join(' e '); }
+const extenso=n=>{ const s=extReais(n); return s?` (${s})`:''; };
 const dt=s=>{ if(!s) return '____'; const [y,mo,d]=s.split('-'); return `${d}/${mo}/${y}`; };
 const fimVig=s=>{ if(!s) return ''; const d=new Date(s+'T12:00:00'); d.setFullYear(d.getFullYear()+1); d.setDate(d.getDate()-1); return d.toISOString().slice(0,10); };
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
