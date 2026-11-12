@@ -83,6 +83,9 @@ label.f i{color:var(--gold);font-style:normal}
 .op{font-size:20px;font-weight:600;line-height:1.3}
 .os{font-size:12px;color:var(--muted)}
 .tag{display:inline-block;background:var(--gold);color:#fff;font-size:11px;border-radius:999px;padding:1px 8px;margin-left:6px;vertical-align:middle}
+.same{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--ink-2);margin:2px 0 8px;cursor:pointer}
+.same input{width:16px;height:16px;accent-color:var(--gold);margin:0}
+input[readonly]{background:#f6f4ef;color:var(--ink-2)}
 .days{display:flex;gap:8px;flex-wrap:wrap}
 .days label{border:1px solid var(--line);border-radius:8px;padding:8px 14px;cursor:pointer;font-size:14px}
 .days input{display:none}
@@ -166,8 +169,9 @@ textarea.msg{width:100%;font:inherit;font-size:13px;padding:10px 12px;border:1px
       <div><label class="f" for="cnpj">CNPJ <i>*</i></label><input type="text" id="cnpj" name="cnpj" inputmode="numeric" placeholder="00.000.000/0000-00"><div class="status" id="cnpjSt"></div><div class="ferr"></div></div>
       <div><label class="f" for="emailnf">E-mail para a nota fiscal <i>*</i></label><input type="email" id="emailnf" name="emailnf"><div class="ferr"></div></div>
       <div class="full"><label class="f" for="rs">Razão social <i>*</i></label><input type="text" id="rs" name="rs"><div class="ferr"></div></div>
-      <div class="full"><label class="f" for="endpj">Endereço da empresa <i>*</i></label><input type="text" id="endpj" name="endpj"><div class="ferr"></div></div>
-      <div class="full"><label class="f" for="rep">Quem assina pela empresa (nome e CPF) <i>*</i></label><input type="text" id="rep" name="rep"><div class="ferr"></div></div>
+      <div class="full"><label class="f" for="endpj">Endereço da empresa <i>*</i></label><label class="same"><input type="checkbox" id="endpjIgual" name="endpj_igual" value="sim"> Mesmo endereço do membro</label><input type="text" id="endpj" name="endpj"><div class="ferr"></div></div>
+      <div><label class="f" for="rep_nome">Quem assina pela empresa <i>*</i></label><input type="text" id="rep_nome" name="rep_nome" placeholder="Nome completo"><div class="ferr"></div></div>
+      <div><label class="f" for="rep_cpf">CPF de quem assina <i>*</i></label><input type="text" id="rep_cpf" name="rep_cpf" inputmode="numeric" placeholder="000.000.000-00"><div class="ferr"></div></div>
     </div>
   </div>
 
@@ -178,14 +182,9 @@ textarea.msg{width:100%;font:inherit;font-size:13px;padding:10px 12px;border:1px
       <label class="opt"><input type="radio" name="forma" value="vista"><div><div class="ot">À vista <span class="tag" id="tagDesc"></span></div><div class="op" id="pVista"></div><div class="os" id="sVista"></div></div></label>
     </div>
     <div id="vencBox" style="margin-top:16px">
-      <label class="f">Melhor dia para o vencimento da parcela</label>
-      <div class="days">
-        <label><input type="radio" name="dia" value="5">Dia 5</label>
-        <label><input type="radio" name="dia" value="10" checked>Dia 10</label>
-        <label><input type="radio" name="dia" value="15">Dia 15</label>
-        <label><input type="radio" name="dia" value="20">Dia 20</label>
-        <label><input type="radio" name="dia" value="25">Dia 25</label>
-      </div>
+      <label class="f" for="prox">Data do próximo pagamento</label>
+      <input type="date" id="prox" name="prox" style="max-width:260px">
+      <div class="hint">A 1ª parcela é paga no fechamento. Esta é a data da 2ª, e o dia dela vira o vencimento de todo mês (escolha um dia de 1 a 28).</div><div class="ferr"></div>
     </div>
     <div class="total" id="total"></div>
   </div>
@@ -297,6 +296,19 @@ const masks={
   tel:s=>{const d=digits(s).slice(0,11); return d.length>10? d.replace(/(\d{2})(\d{5})(\d{0,4})/,'($1) $2-$3') : d.replace(/(\d{2})(\d{0,4})(\d{0,4})/,(m,a,b,c)=>a?`(${a}) ${b}${c?'-'+c:''}`:'');}
 };
 ['cpf','cnpj','cep','tel'].forEach(k=>form[k].addEventListener('input',e=>{e.target.value=masks[k](e.target.value);}));
+form.rep_cpf.addEventListener('input',e=>{e.target.value=masks.cpf(e.target.value);});
+/* Próximo pagamento: só datas futuras, dia 1 a 28. Sugestão: mesmo dia no mês seguinte. */
+const isoDia=dt=>`${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
+const dataBr=iso=>{const [y,m,d]=String(iso||'').split('-'); return d?`${d}/${m}/${y}`:'';};
+function sugereProx(){ const h=new Date(); return isoDia(new Date(h.getFullYear(),h.getMonth()+1,Math.min(h.getDate(),28))); }
+function proxErro(iso){ if(!iso) return 'Escolha a data do próximo pagamento.'; const [y,m,d]=iso.split('-').map(Number); const dt=new Date(y,m-1,d), h=new Date(); h.setHours(0,0,0,0);
+  if(!(dt>h)) return 'Escolha uma data a partir de amanhã.'; if(d>28) return 'Escolha um dia de 1 a 28, para valer em todos os meses.'; return ''; }
+{ const am=new Date(); am.setDate(am.getDate()+1); form.prox.min=isoDia(am); form.prox.value=sugereProx(); }
+/* Endereço da empresa igual ao do membro */
+const endMembro=()=>{ const f=form, uf=(f.uf.value||'').toUpperCase(); return f.rua.value&&f.numero.value?`${f.rua.value}, ${f.numero.value}${f.compl.value?', '+f.compl.value:''}, ${f.bairro.value}, ${f.cidade.value}/${uf}, CEP ${f.cep.value}`:''; };
+function syncEnd(){ const on=form.endpj_igual.checked; form.endpj.readOnly=on; if(on){ form.endpj.value=endMembro(); clearErr(form.endpj); } }
+form.endpj_igual.addEventListener('change',syncEnd);
+['cep','rua','numero','compl','bairro','cidade','uf'].forEach(k=>form[k].addEventListener('input',()=>{ if(form.endpj_igual.checked) form.endpj.value=endMembro(); }));
 function cpfOk(c){c=digits(c); if(c.length!==11||/^(\d)\1+$/.test(c)) return false;
   for(let t=9;t<11;t++){let s=0;for(let i=0;i<t;i++) s+=+c[i]*(t+1-i); if(((s*10)%11)%10!==+c[t]) return false;} return true;}
 function cnpjOk(c){c=digits(c); if(c.length!==14||/^(\d)\1+$/.test(c)) return false;
@@ -322,7 +334,7 @@ form.cnpj.addEventListener('input',async()=>{
   try{
     const r=await fetch(`https://brasilapi.com.br/api/cnpj/v1/${c}`); if(!r.ok) throw 0; const j=await r.json();
     form.rs.value=j.razao_social||'';
-    form.endpj.value=[ [j.descricao_tipo_de_logradouro,j.logradouro].filter(Boolean).join(' '), j.numero, j.complemento, j.bairro, `${j.municipio||''}/${j.uf||''}`, j.cep?'CEP '+masks.cep(j.cep):'' ].filter(x=>x&&String(x).trim()&&x!=='/').join(', ');
+    if(!form.endpj_igual.checked) form.endpj.value=[ [j.descricao_tipo_de_logradouro,j.logradouro].filter(Boolean).join(' '), j.numero, j.complemento, j.bairro, `${j.municipio||''}/${j.uf||''}`, j.cep?'CEP '+masks.cep(j.cep):'' ].filter(x=>x&&String(x).trim()&&x!=='/').join(', ');
     ['rs','endpj'].forEach(k=>clearErr(form[k]));
     st.textContent='Empresa encontrada. Confira os dados.';
   }catch{st.textContent='Não deu para buscar o CNPJ agora. Preencha à mão.';}
@@ -335,13 +347,14 @@ function updPrices(){
   $('#pVista').textContent=brl(vista);
   $('#sVista').textContent=`Pagamento único · economia de ${brl(eco)}`;
   $('#tagDesc').textContent=`${x.desc}% de desconto`;
-  $$('#form .opt, #form .days label').forEach(o=>o.classList.toggle('on',o.querySelector('input').checked));
+  $$('#form .opt').forEach(o=>o.classList.toggle('on',o.querySelector('input').checked));
   const mensal=form.forma.value==='mensal';
   $('#vencBox').classList.toggle('hide',!mensal);
   $('#total').innerHTML= mensal
-    ? `Você paga <b>12x de ${brl(parcela)}</b>, todo dia ${form.dia.value}, num contrato anual de ${brl(x.anual)}.`
+    ? `Você paga <b>12x de ${brl(parcela)}</b>: a 1ª no fechamento${proxErro(form.prox.value)?'':`, depois todo dia ${+form.prox.value.slice(8)} a partir de ${dataBr(form.prox.value)}`}, num contrato anual de ${brl(x.anual)}.`
     : `Você paga <b>${brl(vista)} à vista</b> e economiza ${brl(eco)} no ano.`;
 }
+form.prox.addEventListener('input',updPrices);
 form.addEventListener('change',()=>{ $('#pjFields').classList.toggle('hide',form.pagador.value==='cpf'); updPrices(); });
 function setErr(el,msg){ el.classList.add('bad'); const e=el.parentElement.querySelector('.ferr'); if(e) e.textContent=msg; }
 function clearErr(el){ el.classList.remove('bad'); const e=el.parentElement.querySelector('.ferr'); if(e) e.textContent=''; }
@@ -359,9 +372,11 @@ function validar(){
   req('rua','Coloque a rua.'); req('numero','Coloque o número (ou s/n).'); req('bairro','Coloque o bairro.'); req('cidade','Coloque a cidade.'); req('uf','Coloque a UF.');
   if(req('email','Coloque o e-mail.') && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email.value)){ setErr(f.email,'Esse e-mail parece incompleto.'); erros.push(f.email); }
   if(req('tel','Coloque o celular.') && digits(f.tel.value).length<10){ setErr(f.tel,'Coloque o DDD e o número.'); erros.push(f.tel); }
+  if(f.forma.value==='mensal'){ const pe=proxErro(f.prox.value); if(pe){ setErr(f.prox,pe); erros.push(f.prox); } else clearErr(f.prox); }
   if(f.pagador.value!=='cpf'){
     if(req('cnpj','Coloque o CNPJ.') && !cnpjOk(f.cnpj.value)){ setErr(f.cnpj,'Esse CNPJ não é válido. Confira os números.'); erros.push(f.cnpj); }
-    req('rs','Coloque a razão social.'); req('endpj','Coloque o endereço da empresa.'); req('rep','Coloque quem assina pela empresa.');
+    req('rs','Coloque a razão social.'); req('endpj','Coloque o endereço da empresa.'); req('rep_nome','Coloque o nome completo de quem assina.');
+    if(req('rep_cpf','Coloque o CPF de quem assina.') && !cpfOk(f.rep_cpf.value)){ setErr(f.rep_cpf,'Esse CPF não é válido. Confira os números.'); erros.push(f.rep_cpf); }
     if(req('emailnf','Coloque o e-mail da nota fiscal.') && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.emailnf.value)){ setErr(f.emailnf,'Esse e-mail parece incompleto.'); erros.push(f.emailnf); }
   }
   if(erros.length){ erros[0].scrollIntoView({behavior:'smooth',block:'center'}); erros[0].focus({preventScroll:true}); toast(erros.length===1?'Falta 1 campo.':`Faltam ${erros.length} campos.`); return false; }
@@ -371,11 +386,12 @@ function coletar(){
   const d=Object.fromEntries(new FormData(form));
   d.uf=(d.uf||'').toUpperCase();
   d.end=`${d.rua}, ${d.numero}${d.compl?', '+d.compl:''}, ${d.bairro}, ${d.cidade}/${d.uf}, CEP ${d.cep}`;
-  d.dia=d.forma==='mensal'?(d.dia||'10'):'';
-  if(d.pagador==='cpf'){ ['cnpj','rs','endpj','rep','emailnf'].forEach(k=>delete d[k]); }
+  if(d.forma==='mensal'){ d.dia=String(+String(d.prox).slice(8)); } else { d.dia=''; delete d.prox; }
+  if(d.pagador==='cpf'){ ['cnpj','rs','endpj','rep','rep_nome','rep_cpf','emailnf','endpj_igual'].forEach(k=>delete d[k]); }
+  else { d.rep_nome=d.rep_nome.trim(); d.rep=`${d.rep_nome}, CPF ${d.rep_cpf}`; }
   return d;
 }
-function preencheForm(d){ for(const k in d){ const el=form.elements[k]; if(!el) continue; if(el instanceof RadioNodeList||el.length&&el[0]&&el[0].type==='radio'){ [...el].forEach(r=>r.checked=r.value===d[k]); } else el.value=d[k]; } }
+function preencheForm(d){ form.endpj_igual.checked=d.endpj_igual==='sim'; for(const k in d){ if(k==='endpj_igual') continue; const el=form.elements[k]; if(!el) continue; if(el instanceof RadioNodeList||el.length&&el[0]&&el[0].type==='radio'){ [...el].forEach(r=>r.checked=r.value===d[k]); } else el.value=d[k]; } }
 $('#verContrato').onclick=async()=>{
   if(!validar()) return;
   const b=$('#verContrato'); b.disabled=true; b.textContent='Salvando…';
@@ -400,7 +416,7 @@ function montar(d){
 <h3>As partes</h3>
 <p><b>THE GROUP LTDA</b>, sociedade empresária limitada inscrita no CNPJ sob o nº 68.185.930/0001-09, com sede em Florianópolis/SC, e-mail contato@ogrupo.com.br, representada pelo seu administrador, Kayoan Felipe Guadagnini, daqui em diante chamada <b>THE GROUP</b>.</p>
 <p>${v(d.nome)}, ${v(d.nac)}, ${v(d.civil)}, ${v(d.prof)}, inscrito(a) no CPF sob o nº ${v(d.cpf)}, nascido(a) em ${v(d.nasc&&dt(d.nasc))}, residente em ${v(d.end)}, e-mail ${v(d.email)}, telefone ${v(d.tel)}, daqui em diante chamado(a) <b>MEMBRO</b>.</p>
-${pj?`<p>${v(d.rs)}, inscrita no CNPJ sob o nº ${v(d.cnpj)}, com sede em ${v(d.endpj)}, representada por ${v(d.rep)}, daqui em diante chamada <b>RESPONSÁVEL FINANCEIRA</b>.</p>`:''}
+${pj?`<p>${v(d.rs)}, inscrita no CNPJ sob o nº ${v(d.cnpj)}, com sede em ${v(d.endpj)}, representada por ${d.rep_nome?`${v(d.rep_nome)}, inscrito(a) no CPF sob o nº ${v(d.rep_cpf)}`:v(d.rep)}, daqui em diante chamada <b>RESPONSÁVEL FINANCEIRA</b>.</p>`:''}
 <p>As partes celebram este contrato, que se rege pelas cláusulas abaixo.</p>
 
 <h3>1. O que é o The Group</h3>
@@ -425,9 +441,14 @@ ${pj?`<p>${v(d.rs)}, inscrita no CNPJ sob o nº ${v(d.cnpj)}, com sede em ${v(d.
 
 <h3>5. Valor e forma de pagamento</h3>
 <p>5.1. O valor deste contrato é de <b>${brl(anual)}${extenso(anual)}</b> pelo período de 12 (doze) meses.</p>
-${mensal
+${mensal&&d.prox
+ ?`<p>5.2. Forma de pagamento escolhida pelo MEMBRO: <b>mensal recorrente</b>.</p>
+<p>5.2.1. O valor anual é pago em <b>${parc} parcelas mensais e sucessivas de ${brl(parcela)}${extenso(parcela)}</b>. A primeira parcela é paga no fechamento deste contrato, e as demais vencem todo dia <b>${esc(d.dia)}</b> de cada mês, a partir de <b>${esc(dataBr(d.prox))}</b>, por cobrança recorrente no cartão de crédito, boleto ou Pix, pelo meio de pagamento combinado com o THE GROUP.</p>
+<p>5.2.2. A cobrança recorrente no cartão reserva só o valor de cada parcela, e não o valor anual inteiro.</p>`
+ :mensal
  ?`<p>5.2. O valor anual é pago em <b>${parc} parcelas mensais de ${brl(parcela)}${extenso(parcela)}</b>, com vencimento todo dia <b>${esc(d.dia)}</b>, por cobrança recorrente no cartão de crédito, boleto ou Pix, pelo meio de pagamento combinado com o THE GROUP. A cobrança recorrente no cartão reserva só o valor de cada parcela, e não o valor anual inteiro.</p>`
- :`<p>5.2. O valor anual é pago à vista, com desconto de ${esc(d.desc)}%, no total de <b>${brl(vista)}${extenso(vista)}</b>, pelo meio de pagamento combinado com o THE GROUP.</p>`}
+ :`<p>5.2. Forma de pagamento escolhida pelo MEMBRO: <b>à vista</b>.</p>
+<p>5.2.1. O valor anual é pago à vista, com desconto de ${esc(d.desc)}%, no total de <b>${brl(vista)}${extenso(vista)}</b>, pelo meio de pagamento combinado com o THE GROUP.</p>`}
 <p>5.3. O THE GROUP emite nota fiscal de serviço a cada pagamento recebido, em nome ${pj?'da RESPONSÁVEL FINANCEIRA, enviada ao e-mail '+v(d.emailnf):'do MEMBRO, enviada ao e-mail '+v(d.email)}.</p>
 ${patro?`<p>5.4. O valor da cláusula 5.1 é pago pela RESPONSÁVEL FINANCEIRA, que é patrocinadora do The Group, dentro do contrato de patrocínio dela. O MEMBRO não paga nada no primeiro ano. A nota fiscal sai em nome da RESPONSÁVEL FINANCEIRA. O MEMBRO assina este contrato e segue todas as regras do grupo como qualquer outro membro. O patrocinador não recebe dados do MEMBRO nem acesso ao grupo por pagar a vaga. Se a RESPONSÁVEL FINANCEIRA deixar de pagar, o MEMBRO pode continuar no grupo assumindo as parcelas restantes nas mesmas condições, avisando o THE GROUP em até 15 dias.</p>`:''}
 
@@ -500,7 +521,7 @@ function show(id){ ['carregando','invalido','preencher','membro'].forEach(x=>$('
 function dadosContrato(){ return {...C.dados, id:C.numero, anual:C.anual, desc:C.desconto, renov:C.renovacao, parcelas:12}; }
 function resumo(c){
   return `
-    <div><div class="k">Valor do contrato</div><div class="v">${brl(c.anual)} por ano</div><div class="s">${c.patro?'Pago pelo patrocinador no primeiro ano':c.mensal?`${c.parc}x de ${brl(c.parcela)} por mês, todo dia ${esc(D.dia)}`:`À vista: ${brl(c.vista)}`}</div></div>
+    <div><div class="k">Valor do contrato</div><div class="v">${brl(c.anual)} por ano</div><div class="s">${c.patro?'Pago pelo patrocinador no primeiro ano':c.mensal?(D.prox?`${c.parc}x de ${brl(c.parcela)}: 1ª no fechamento, depois todo dia ${esc(D.dia)} a partir de ${esc(dataBr(D.prox))}`:`${c.parc}x de ${brl(c.parcela)} por mês, todo dia ${esc(D.dia)}`):`À vista: ${brl(c.vista)}`}</div></div>
     <div><div class="k">Vigência</div><div class="v">12 meses</div><div class="s">A partir do primeiro pagamento</div></div>
     <div><div class="k">Primeiro ano</div><div class="v">Tudo incluso</div><div class="s">The House com hospedagem e refeição nos encontros mensais. A passagem fica com você</div></div>
     <div><div class="k">Renovação</div><div class="v">${brl(c.renov)} por ano</div><div class="s">Só se você confirmar: ${brl(c.renovParc)} por mês ou ${brl(c.renov)} à vista, com link enviado 60 dias antes</div></div>`;
@@ -561,6 +582,7 @@ function renderForm(){
   show('preencher');
   form.reset(); $$('#form .bad').forEach(clearErr);
   if(C.dados) preencheForm(C.dados); else { form.nome.value=C.nome||''; form.tel.value=C.telefone||''; }
+  if(!form.prox.value) form.prox.value=sugereProx(); syncEnd();
   $('#saudP').textContent=`${(C.nome||'').split(' ')[0]}, faltam só os seus dados.`;
   form.dispatchEvent(new Event('change')); updPrices(); window.scrollTo(0,0);
 }
