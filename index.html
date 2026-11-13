@@ -351,14 +351,14 @@ function updPrices(){
   $('#pMensal').textContent=`${brl(parcela)} por mês`;
   $('#sMensal').textContent=`12 parcelas · ${brl(x.anual)} no ano`;
   $('#pVista').textContent=brl(vista);
-  $('#sVista').textContent=`Pagamento único · economia de ${brl(eco)}`;
-  $('#tagDesc').textContent=`${x.desc}% de desconto`;
+  $('#sVista').textContent=eco>0?`Pagamento único · economia de ${brl(eco)}`:'Pagamento único';
+  $('#tagDesc').textContent=`${x.desc}% de desconto`; $('#tagDesc').classList.toggle('hide',!(x.desc>0));
   $$('#form .opt').forEach(o=>o.classList.toggle('on',o.querySelector('input').checked));
   const mensal=form.forma.value==='mensal';
   $('#vencBox').classList.toggle('hide',!mensal);
   $('#total').innerHTML= mensal
     ? `Você paga <b>12x de ${brl(parcela)}</b>: a 1ª no fechamento${proxErro(form.prox.value)?'':`, depois todo dia ${+form.prox.value.slice(8)} a partir de ${dataBr(form.prox.value)}`}, num contrato anual de ${brl(x.anual)}.`
-    : `Você paga <b>${brl(vista)} à vista</b> e economiza ${brl(eco)} no ano.`;
+    : eco>0?`Você paga <b>${brl(vista)} à vista</b> e economiza ${brl(eco)} no ano.`:`Você paga <b>${brl(vista)} à vista</b>, em um pagamento só.`;
 }
 form.prox.addEventListener('input',updPrices);
 form.addEventListener('change',()=>{ $('#pjFields').classList.toggle('hide',form.pagador.value==='cpf'); updPrices(); });
