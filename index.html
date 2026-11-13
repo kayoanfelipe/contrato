@@ -180,9 +180,10 @@ textarea.msg{width:100%;font:inherit;font-size:13px;padding:10px 12px;border:1px
       <label class="opt"><input type="radio" name="forma" value="vista"><div><div class="ot">À vista <span class="tag" id="tagDesc"></span></div><div class="op" id="pVista"></div><div class="os" id="sVista"></div></div></label>
     </div>
     <div id="vencBox" style="margin-top:16px">
-      <label class="f" for="prox">Data do próximo pagamento</label>
+      <div id="proxEdit"><label class="f" for="prox">Data do próximo pagamento</label>
       <input type="date" id="prox" name="prox" style="max-width:260px">
-      <div class="hint">A 1ª parcela é paga no fechamento. Esta é a data da 2ª, e o dia dela vira o vencimento de todo mês (escolha um dia de 1 a 28).</div><div class="ferr"></div>
+      <div class="hint">A 1ª parcela é paga no fechamento. Esta é a data da 2ª, e o dia dela vira o vencimento de todo mês (escolha um dia de 1 a 28).</div><div class="ferr"></div></div>
+      <div id="proxFixo" class="hide"><label class="f">Datas de pagamento</label><div id="proxFixoTxt" style="font-size:14px;line-height:1.5"></div></div>
     </div>
     <div class="total" id="total"></div>
   </div>
@@ -377,7 +378,7 @@ function validar(){
   req('rua','Coloque a rua.'); req('numero','Coloque o número (ou s/n).'); req('bairro','Coloque o bairro.'); req('cidade','Coloque a cidade.'); req('uf','Coloque a UF.');
   if(req('email','Coloque o e-mail.') && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email.value)){ setErr(f.email,'Esse e-mail parece incompleto.'); erros.push(f.email); }
   if(req('tel','Coloque o celular.') && digits(f.tel.value).length<10){ setErr(f.tel,'Coloque o DDD e o número.'); erros.push(f.tel); }
-  if(f.forma.value==='mensal'){ const pe=proxErro(f.prox.value); if(pe){ setErr(f.prox,pe); erros.push(f.prox); } else clearErr(f.prox); }
+  if(f.forma.value==='mensal'&&!(C&&C.prox)){ const pe=proxErro(f.prox.value); if(pe){ setErr(f.prox,pe); erros.push(f.prox); } else clearErr(f.prox); }
   if(f.pagador.value!=='cpf'){
     if(req('cnpj','Coloque o CNPJ.') && !cnpjOk(f.cnpj.value)){ setErr(f.cnpj,'Esse CNPJ não é válido. Confira os números.'); erros.push(f.cnpj); }
     req('rs','Coloque a razão social.'); req('endpj','Coloque o endereço da empresa.'); req('rep_nome','Coloque o nome completo de quem assina.');
@@ -591,6 +592,9 @@ function renderForm(){
   form.reset(); $$('#form .bad').forEach(clearErr);
   if(C.dados) preencheForm(C.dados); else { form.nome.value=C.nome||''; form.tel.value=C.telefone||''; }
   if(!form.prox.value) form.prox.value=sugereProx(); syncEnd();
+  // A data de pagamento é definida pelo Kayoan na central: o membro só vê.
+  if(C.prox){ form.prox.value=C.prox; $('#proxEdit').classList.add('hide'); $('#proxFixo').classList.remove('hide');
+    $('#proxFixoTxt').textContent=`1ª parcela no fechamento. As demais vencem todo dia ${+C.prox.slice(8)}, a partir de ${dataBr(C.prox)}.`; updPrices(); }
   $('#saudP').textContent=`${(C.nome||'').split(' ')[0]}, faltam só os seus dados.`;
   form.dispatchEvent(new Event('change')); updPrices(); window.scrollTo(0,0);
 }
