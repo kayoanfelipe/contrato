@@ -174,18 +174,8 @@ textarea.msg{width:100%;font:inherit;font-size:13px;padding:10px 12px;border:1px
   </div>
 
   <div class="card">
-    <h2>Forma de pagamento</h2>
-    <div class="opts">
-      <label class="opt"><input type="radio" name="forma" value="mensal" checked><div><div class="ot">Contrato anual, pago por mês</div><div class="op" id="pMensal"></div><div class="os" id="sMensal"></div></div></label>
-      <label class="opt"><input type="radio" name="forma" value="vista"><div><div class="ot">À vista <span class="tag" id="tagDesc"></span></div><div class="op" id="pVista"></div><div class="os" id="sVista"></div></div></label>
-    </div>
-    <div id="vencBox" style="margin-top:16px">
-      <div id="proxEdit"><label class="f" for="prox">Data do próximo pagamento</label>
-      <input type="date" id="prox" name="prox" style="max-width:260px">
-      <div class="hint">A 1ª parcela é paga no fechamento. Esta é a data da 2ª, e o dia dela vira o vencimento de todo mês (escolha um dia de 1 a 28).</div><div class="ferr"></div></div>
-      <div id="proxFixo" class="hide"><label class="f">Datas de pagamento</label><div id="proxFixoTxt" style="font-size:14px;line-height:1.5"></div></div>
-    </div>
-    <div class="total" id="total"></div>
+    <h2>Pagamento</h2>
+    <div class="total" id="total" style="margin-top:0"></div>
   </div>
 </form>
   <button class="btn gold" type="button" id="verContrato" style="width:100%;padding:16px">Ver meu contrato</button>
@@ -212,8 +202,8 @@ textarea.msg{width:100%;font:inherit;font-size:13px;padding:10px 12px;border:1px
   <div id="aceiteArea" class="noprint">
     <div class="card">
       <h2>Antes de aceitar</h2>
-      <label class="check"><input type="checkbox" class="ck" value="renovacao"><span>Entendi como funciona a <b>renovação</b>.<small>Depois de 12 meses, posso renovar por <span class="vRenov"></span> por ano, pago por mês ou à vista. Só renova se eu confirmar e pagar o link novo. Nada é cobrado sozinho no meu cartão.</small></span></label>
-      <label class="check"><input type="checkbox" class="ck" value="multa e atraso"><span>Entendi a <b>multa por saída antecipada</b> e a regra de atraso.<small>O contrato vale por 12 meses. Saindo antes, depois dos 7 dias de arrependimento, pago 30% das parcelas que faltam.</small></span></label>
+      <label class="check"><input type="checkbox" class="ck" value="renovacao"><span>Entendi como funciona a <b>renovação</b>.<small>Depois de 12 meses, posso renovar por <span class="vRenov"></span>. Só renova se eu confirmar e fizer o pagamento combinado. Nada é cobrado sozinho.</small></span></label>
+      <label class="check"><input type="checkbox" class="ck" value="saida e atraso"><span>Entendi a regra de <b>saída</b> e a de <b>atraso</b>.<small>Entendi que, depois dos 7 dias de arrependimento, não há devolução, e o que eu combinei de pagar continua devido. Pagamento atrasado tem multa de 2% e juros de 1% ao mês.</small></span></label>
       <label class="check"><input type="checkbox" class="ck" value="sigilo e conduta"><span>Concordo com o <b>sigilo absoluto e as regras de conduta</b>.<small>Sem pitch, sem print, sem gravação. Quebra de sigilo é exclusão.</small></span></label>
       <label class="check"><input type="checkbox" class="ck" value="li tudo"><span>Li o contrato inteiro e <b>concordo com todas as cláusulas</b>.</span></label>
     </div>
@@ -304,13 +294,10 @@ const masks={
 };
 ['cpf','cnpj','cep','tel'].forEach(k=>form[k].addEventListener('input',e=>{e.target.value=masks[k](e.target.value);}));
 form.rep_cpf.addEventListener('input',e=>{e.target.value=masks.cpf(e.target.value);});
-/* Próximo pagamento: só datas futuras, dia 1 a 28. Sugestão: mesmo dia no mês seguinte. */
-const isoDia=dt=>`${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
 const dataBr=iso=>{const [y,m,d]=String(iso||'').split('-'); return d?`${d}/${m}/${y}`:'';};
-function sugereProx(){ const h=new Date(); return isoDia(new Date(h.getFullYear(),h.getMonth()+1,Math.min(h.getDate(),28))); }
-function proxErro(iso){ if(!iso) return 'Escolha a data do próximo pagamento.'; const [y,m,d]=iso.split('-').map(Number); const dt=new Date(y,m-1,d), h=new Date(); h.setHours(0,0,0,0);
-  if(!(dt>h)) return 'Escolha uma data a partir de amanhã.'; if(d>28) return 'Escolha um dia de 1 a 28, para valer em todos os meses.'; return ''; }
-{ const am=new Date(); am.setDate(am.getDate()+1); form.prox.min=isoDia(am); form.prox.value=sugereProx(); }
+/* Meio de pagamento combinado na call (cláusula 5.2). */
+const MEIOS={pix:'Pix ou transferência bancária',link:'link de pagamento no cartão de crédito',cripto:'criptomoeda',payoneer:'Payoneer',lootrush:'LootRush'};
+const meioTxt=m=>MEIOS[m]||'';
 /* Endereço da empresa igual ao do membro */
 const endMembro=()=>{ const f=form, uf=(f.uf.value||'').toUpperCase(); return f.rua.value&&f.numero.value?`${f.rua.value}, ${f.numero.value}${f.compl.value?', '+f.compl.value:''}, ${f.bairro.value}, ${f.cidade.value}/${uf}, CEP ${f.cep.value}`:''; };
 function syncEnd(){ const on=form.endpj_igual.checked; form.endpj.readOnly=on; if(on){ form.endpj.value=endMembro(); clearErr(form.endpj); } }
@@ -346,22 +333,11 @@ form.cnpj.addEventListener('input',async()=>{
     st.textContent='Empresa encontrada. Confira os dados.';
   }catch{st.textContent='Não deu para buscar o CNPJ agora. Preencha à mão.';}
 });
-function vals(){ return {anual:+C.anual,desc:+C.desconto,renov:+C.renovacao}; }
 function updPrices(){
-  const x=vals(), parcela=x.anual/12, vista=x.anual*(1-x.desc/100), eco=x.anual-vista;
-  $('#pMensal').textContent=`${brl(parcela)} por mês`;
-  $('#sMensal').textContent=`12 parcelas · ${brl(x.anual)} no ano`;
-  $('#pVista').textContent=brl(vista);
-  $('#sVista').textContent=eco>0?`Pagamento único · economia de ${brl(eco)}`:'Pagamento único';
-  $('#tagDesc').textContent=`${x.desc}% de desconto`; $('#tagDesc').classList.toggle('hide',!(x.desc>0));
-  $$('#form .opt').forEach(o=>o.classList.toggle('on',o.querySelector('input').checked));
-  const mensal=form.forma.value==='mensal';
-  $('#vencBox').classList.toggle('hide',!mensal);
-  $('#total').innerHTML= mensal
-    ? `Você paga <b>12x de ${brl(parcela)}</b>: a 1ª no fechamento${proxErro(form.prox.value)?'':`, depois todo dia ${+form.prox.value.slice(8)} a partir de ${dataBr(form.prox.value)}`}, num contrato anual de ${brl(x.anual)}.`
-    : eco>0?`Você paga <b>${brl(vista)} à vista</b> e economiza ${brl(eco)} no ano.`:`Você paga <b>${brl(vista)} à vista</b>, em um pagamento só.`;
+  $('#total').innerHTML= C&&C.meio
+    ? `Valor do contrato: <b>${brl(+C.anual)}</b>, por 12 meses.<br>Combinado com o The Group: <b>${esc(meioTxt(C.meio))}</b>, ${esc(C.condicoes||'')}.`
+    : `As condições de pagamento são combinadas com o The Group.`;
 }
-form.prox.addEventListener('input',updPrices);
 form.addEventListener('change',()=>{ $('#pjFields').classList.toggle('hide',form.pagador.value==='cpf'); updPrices(); });
 function setErr(el,msg){ el.classList.add('bad'); const e=el.parentElement.querySelector('.ferr'); if(e) e.textContent=msg; }
 function clearErr(el){ el.classList.remove('bad'); const e=el.parentElement.querySelector('.ferr'); if(e) e.textContent=''; }
@@ -378,7 +354,6 @@ function validar(){
   req('rua','Coloque a rua.'); req('numero','Coloque o número (ou s/n).'); req('bairro','Coloque o bairro.'); req('cidade','Coloque a cidade.'); req('uf','Coloque a UF.');
   if(req('email','Coloque o e-mail.') && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email.value)){ setErr(f.email,'Esse e-mail parece incompleto.'); erros.push(f.email); }
   if(req('tel','Coloque o celular.') && digits(f.tel.value).length<10){ setErr(f.tel,'Coloque o DDD e o número.'); erros.push(f.tel); }
-  if(f.forma.value==='mensal'&&!(C&&C.prox)){ const pe=proxErro(f.prox.value); if(pe){ setErr(f.prox,pe); erros.push(f.prox); } else clearErr(f.prox); }
   if(f.pagador.value!=='cpf'){
     if(req('cnpj','Coloque o CNPJ.') && !cnpjOk(f.cnpj.value)){ setErr(f.cnpj,'Esse CNPJ não é válido. Confira os números.'); erros.push(f.cnpj); }
     req('rs','Coloque a razão social.'); req('endpj','Coloque o endereço da empresa.'); req('rep_nome','Coloque o nome completo de quem assina.');
@@ -392,7 +367,6 @@ function coletar(){
   const d=Object.fromEntries(new FormData(form));
   d.uf=(d.uf||'').toUpperCase();
   d.end=`${d.rua}, ${d.numero}${d.compl?', '+d.compl:''}, ${d.bairro}, ${d.cidade}/${d.uf}, CEP ${d.cep}`;
-  if(d.forma==='mensal'){ d.dia=String(+String(d.prox).slice(8)); } else { d.dia=''; delete d.prox; }
   if(d.pagador==='cpf'){ ['cnpj','rs','endpj','rep','rep_nome','rep_cpf','emailnf','endpj_igual'].forEach(k=>delete d[k]); }
   else { d.rep_nome=d.rep_nome.trim(); d.rep=`${d.rep_nome}, CPF ${d.rep_cpf}`; }
   return d;
@@ -411,16 +385,16 @@ $('#verContrato').onclick=async()=>{
 };
 
 /* ---------- CONTRATO ---------- */
+// Texto do rascunho de 15/11/2026: sem pagamento mês a mês. Meio e condições vêm da central.
 function montar(d){
-  const anual=+d.anual||30000, parc=+d.parcelas||12, parcela=anual/parc;
-  const vista=anual*(1-(+d.desc||0)/100), renov=+d.renov||15000, renovParc=renov/12;
-  const fim=fimVig(d.inicio), mensal=d.forma!=='vista', pj=d.pagador!=='cpf', patro=d.pagador==='patrocinio', ren=d.tipo==='renovacao';
-  return {anual,parc,parcela,vista,renov,renovParc,fim,mensal,pj,patro,html:`
+  const anual=+d.anual||30000, renov=+d.renov||15000;
+  const fim=fimVig(d.inicio), pj=d.pagador!=='cpf', patro=d.pagador==='patrocinio', ren=d.tipo==='renovacao';
+  return {anual,renov,fim,pj,patro,meio:d.meio,condicoes:d.condicoes,html:`
 <h3 class="t">Contrato de ${ren?'Renovação':'Adesão'}, Cultura e Confidencialidade do The Group</h3>
 <p class="num">Contrato nº ${esc(d.id)}</p>
 
 <h3>As partes</h3>
-<p><b>THE GROUP LTDA</b>, sociedade empresária limitada inscrita no CNPJ sob o nº 68.185.930/0001-09, com sede em Florianópolis/SC, e-mail contato@ogrupo.com.br, representada pelo seu administrador, Kayoan Felipe Guadagnini, daqui em diante chamada <b>THE GROUP</b>.</p>
+<p><b>THE GROUP LTDA</b>, sociedade empresária limitada inscrita no CNPJ sob o nº 68.185.930/0001-09, com sede em Florianópolis/SC, e-mail contato@ogrupo.com.br, neste ato representada pelo seu administrador, Kayoan Felipe Guadagnini, daqui em diante chamada <b>THE GROUP</b>.</p>
 <p>${v(d.nome)}, ${v(d.nac)}, ${v(d.prof)}, inscrito(a) no CPF sob o nº ${v(d.cpf)}, nascido(a) em ${v(d.nasc&&dt(d.nasc))}, residente em ${v(d.end)}, e-mail ${v(d.email)}, telefone ${v(d.tel)}, daqui em diante chamado(a) <b>MEMBRO</b>.</p>
 ${pj?`<p>${v(d.rs)}, inscrita no CNPJ sob o nº ${v(d.cnpj)}, com sede em ${v(d.endpj)}, representada por ${d.rep_nome?`${v(d.rep_nome)}, inscrito(a) no CPF sob o nº ${v(d.rep_cpf)}`:v(d.rep)}, daqui em diante chamada <b>RESPONSÁVEL FINANCEIRA</b>.</p>`:''}
 <p>As partes celebram este contrato, que se rege pelas cláusulas abaixo.</p>
@@ -428,14 +402,12 @@ ${pj?`<p>${v(d.rs)}, inscrita no CNPJ sob o nº ${v(d.cnpj)}, com sede em ${v(d.
 <h3>1. O que é o The Group</h3>
 <p>1.1. O The Group é um grupo privado e restrito de convivência, conexão e troca entre fundadores e operadores que atuam ou já atuaram no mercado de resposta direta.</p>
 ${ren?`<p>1.2. O MEMBRO já faz parte do grupo. Este contrato renova a sua participação por mais 12 (doze) meses, no modelo atual, e passa a valer no lugar das condições em que ele entrou a partir do início da vigência (cláusula 4.1).</p>`:`<p>1.2. A entrada no grupo depende da curadoria do THE GROUP. A aprovação na curadoria vem antes deste contrato, e o pagamento é a última etapa da admissão.</p>`}
-<p>1.3. O MEMBRO declara que atua ou já atuou com operação própria no mercado de resposta direta e que não ${ren?'participa do':'entra no'} grupo com o objetivo de vender produtos ou serviços aos outros membros.</p>
+<p>1.3. O MEMBRO declara que atua ou já atuou com operação própria no mercado de resposta direta e que não participa do grupo com o objetivo de vender produtos ou serviços aos outros membros.</p>
 
 <h3>2. O que o membro recebe</h3>
-<p>2.1. Durante a vigência, o MEMBRO tem acesso a: (a) o grupo no aplicativo próprio do The Group, com o grupo geral e os subgrupos por cidade; (b) os encontros mensais regionais, em formatos como jantar, almoço, charuto, kart ou golfe, com local, data e formato definidos pelo THE GROUP; (c) as edições da The House realizadas durante a vigência (hoje, duas por ano); (d) o podcast do The Group, com a possibilidade de participar como convidado, a critério da curadoria; (e) acompanhamento individual: um contato leve a cada 30 dias e uma conversa de acompanhamento a cada 90 dias; (f) convites para eventos de empresas parceiras, quando houver.</p>
-${ren?`<p>2.2. <b>Encontros presenciais.</b> O MEMBRO paga a própria parte em cada encontro mensal e o ingresso da The House, que é informado antes de cada edição. <b>A passagem, o deslocamento e a hospedagem ficam por conta do MEMBRO.</b></p>
-`:`<p>2.2. <b>Primeiro ano com tudo incluso.</b> No primeiro ano de contrato, os encontros presenciais são oferecidos com tudo incluso: na The House, ingresso, hospedagem, alimentação e bebida; nos encontros mensais, a refeição e a bebida do encontro. <b>A passagem, o deslocamento e a hospedagem nos encontros mensais ficam por conta do MEMBRO.</b></p>
-<p>2.3. No pagamento mensal, o tudo incluso da The House fica garantido a partir da terceira parcela paga. Para quem pagou à vista ou tem vaga patrocinada, vale desde o início. Em qualquer caso, o tudo incluso vale enquanto o MEMBRO estiver com os pagamentos em dia, e quem estiver com parcela em atraso pode ter a reserva e o ingresso suspensos até regularizar a situação.</p>
-`}<p>${ren?'2.3':'2.4'}. Datas, cidades, formatos e o nome dos encontros e do podcast podem mudar ao longo do ano. O THE GROUP se compromete a realizar, durante a vigência, ao menos um encontro por mês e duas edições da The House por ano, avisando o MEMBRO com antecedência.</p>
+<p>2.1. Durante a vigência, o MEMBRO tem acesso a: (a) o grupo no aplicativo próprio do The Group, com o grupo geral e os subgrupos por cidade; (b) os encontros mensais regionais, em formatos como jantar, almoço, charuto, kart ou golfe, com local, data e formato definidos pelo THE GROUP; (c) as edições da The House realizadas durante a vigência (hoje, duas por ano); (d) o podcast do The Group, com a possibilidade de participar como convidado, a critério da curadoria; (e) acompanhamento individual: um contato leve a cada 30 (trinta) dias e uma conversa de acompanhamento a cada 90 (noventa) dias; (f) convites para eventos de empresas parceiras, quando houver.</p>
+${ren?`<p>2.2. <b>Encontros presenciais.</b> O MEMBRO paga a própria parte em cada encontro mensal e o ingresso da The House, que é informado antes de cada edição. <b>A passagem, o deslocamento e a hospedagem ficam por conta do MEMBRO.</b></p>`:`<p>2.2. <b>Primeiro ano com tudo incluso.</b> No primeiro ano de contrato, os encontros presenciais são oferecidos com tudo incluso: na The House, ingresso, hospedagem, alimentação e bebida; nos encontros mensais, a refeição e a bebida do encontro. <b>A passagem, o deslocamento e a hospedagem nos encontros mensais ficam por conta do MEMBRO.</b> O tudo incluso vale enquanto o MEMBRO estiver com os pagamentos em dia.</p>`}
+<p>2.3. Datas, cidades, formatos e o nome dos encontros e do podcast podem mudar ao longo do ano. O THE GROUP se compromete a realizar, durante a vigência, ao menos um encontro por mês e duas edições da The House por ano, avisando o MEMBRO com antecedência.</p>
 
 <h3>3. O que o The Group não promete</h3>
 <p>3.1. O THE GROUP oferece acesso, encontros, curadoria e acompanhamento. <b>O THE GROUP não promete resultado financeiro, faturamento, clientes, vendas, sociedades ou negócios de qualquer tipo.</b></p>
@@ -443,28 +415,23 @@ ${ren?`<p>2.2. <b>Encontros presenciais.</b> O MEMBRO paga a própria parte em c
 <p>3.3. Nada neste contrato é oferta de investimento, participação societária ou promessa de retorno.</p>
 
 <h3>4. Vigência</h3>
-${ren?`<p>4.1. Este contrato vale por 12 (doze) meses, a partir de ${v(d.inicio&&dt(d.inicio))}, data em que termina o ciclo atual do MEMBRO.</p>`:`<p>4.1. Este contrato vale por 12 (doze) meses, contados da data do primeiro pagamento.</p>`}
-<p>4.2. O prazo de 12 meses é condição do preço. O valor mensal da cláusula 5 só existe porque o MEMBRO se compromete com o ano inteiro.</p>
+${ren?`<p>4.1. Este contrato vale por 12 (doze) meses, a partir de ${v(d.inicio&&dt(d.inicio))}, data em que termina o ciclo atual do MEMBRO.</p>`:`<p>4.1. Este contrato vale por 12 (doze) meses, a partir da data em que o THE GROUP confirmar o pagamento (ou o primeiro pagamento, quando o valor for pago em partes combinadas).</p>`}
 
 <h3>5. Valor e forma de pagamento</h3>
 <p>5.1. O valor deste contrato é de <b>${brl(anual)}${extenso(anual)}</b> pelo período de 12 (doze) meses.</p>
-${mensal&&d.prox
- ?`<p>5.2. Forma de pagamento escolhida pelo MEMBRO: <b>mensal recorrente</b>.</p>
-<p>5.2.1. O valor anual é pago em <b>${parc} parcelas mensais e sucessivas de ${brl(parcela)}${extenso(parcela)}</b>. A primeira parcela é paga no fechamento deste contrato, e as demais vencem todo dia <b>${esc(d.dia)}</b> de cada mês, a partir de <b>${esc(dataBr(d.prox))}</b>, por cobrança recorrente no cartão de crédito, boleto ou Pix, pelo meio de pagamento combinado com o THE GROUP.</p>
-<p>5.2.2. A cobrança recorrente no cartão reserva só o valor de cada parcela, e não o valor anual inteiro.</p>`
- :mensal
- ?`<p>5.2. O valor anual é pago em <b>${parc} parcelas mensais de ${brl(parcela)}${extenso(parcela)}</b>, com vencimento todo dia <b>${esc(d.dia)}</b>, por cobrança recorrente no cartão de crédito, boleto ou Pix, pelo meio de pagamento combinado com o THE GROUP. A cobrança recorrente no cartão reserva só o valor de cada parcela, e não o valor anual inteiro.</p>`
- :`<p>5.2. Forma de pagamento escolhida pelo MEMBRO: <b>à vista</b>.</p>
-<p>5.2.1. O valor anual é pago à vista, com desconto de ${esc(d.desc)}%, no total de <b>${brl(vista)}${extenso(vista)}</b>, pelo meio de pagamento combinado com o THE GROUP.</p>`}
-<p>5.3. O THE GROUP emite nota fiscal de serviço a cada pagamento recebido, em nome ${pj?'da RESPONSÁVEL FINANCEIRA, enviada ao e-mail '+v(d.emailnf):'do MEMBRO, enviada ao e-mail '+v(d.email)}.</p>
-${patro?`<p>5.4. O valor da cláusula 5.1 é pago pela RESPONSÁVEL FINANCEIRA, que é patrocinadora do The Group, dentro do contrato de patrocínio dela. O MEMBRO não paga nada no primeiro ano. A nota fiscal sai em nome da RESPONSÁVEL FINANCEIRA. O MEMBRO assina este contrato e segue todas as regras do grupo como qualquer outro membro. O patrocinador não recebe dados do MEMBRO nem acesso ao grupo por pagar a vaga. Se a RESPONSÁVEL FINANCEIRA deixar de pagar, o MEMBRO pode continuar no grupo assumindo as parcelas restantes nas mesmas condições, avisando o THE GROUP em até 15 dias.</p>`:''}
+<p>5.2. O pagamento pode ser feito por um destes meios: (a) Pix ou transferência bancária, à vista ou em partes combinadas; (b) link de pagamento, no cartão de crédito, à vista ou parcelado, conforme as condições da plataforma; (c) criptomoeda; (d) Payoneer; (e) LootRush.</p>
+<p>5.3. O meio e as condições do pagamento foram combinados entre as partes antes deste aceite: ${v(meioTxt(d.meio))}, ${v(d.condicoes)}.</p>
+<p>5.4. No parcelamento pelo link de pagamento, as parcelas são cobradas pela plataforma no cartão do MEMBRO. Os juros e encargos do parcelamento, quando houver, ficam por conta do MEMBRO.</p>
+<p>5.5. Nos pagamentos em criptomoeda ou em moeda estrangeira, vale a cotação do dia do pagamento, e o valor recebido pelo THE GROUP precisa corresponder ao valor em reais da cláusula 5.1.</p>
+<p>5.6. O THE GROUP emite nota fiscal de serviço do valor recebido, em nome ${pj?'da RESPONSÁVEL FINANCEIRA, enviada ao e-mail '+v(d.emailnf):'do MEMBRO, enviada ao e-mail '+v(d.email)}.</p>
+${patro?`<p>5.7. O valor da cláusula 5.1 é pago pela RESPONSÁVEL FINANCEIRA, que é patrocinadora do The Group, dentro do contrato de patrocínio dela. O MEMBRO não paga nada no primeiro ano. A nota fiscal sai em nome da RESPONSÁVEL FINANCEIRA. O MEMBRO assina este contrato e segue todas as regras do grupo como qualquer outro membro. O patrocinador não recebe dados do MEMBRO nem acesso ao grupo por pagar a vaga.</p>`:''}
 
 <div class="dest">
 <h3 style="margin-top:0">6. Atraso no pagamento</h3>
-<p>6.1. A parcela paga depois do vencimento tem multa de 2% e juros de 1% ao mês, calculados sobre o valor em atraso.</p>
-<p>6.2. Há tolerância de 5 (cinco) dias depois do vencimento, sem suspensão do acesso.</p>
-<p>6.3. Depois de 15 (quinze) dias de atraso, o acesso ao aplicativo e aos encontros fica suspenso até o pagamento. A suspensão não interrompe a contagem do prazo do contrato nem o vencimento das parcelas seguintes.</p>
-<p>6.4. Depois de 60 (sessenta) dias de atraso, o THE GROUP pode encaminhar a dívida para cobrança e encerrar o contrato nos termos da cláusula 10.</p>
+<p>6.1. Se algum pagamento combinado na cláusula 5.3 não for feito na data, o valor em atraso tem multa de 2% (dois por cento) e juros de 1% (um por cento) ao mês.</p>
+<p>6.2. Há tolerância de 5 (cinco) dias depois da data combinada, sem suspensão do acesso.</p>
+<p>6.3. Depois de 15 (quinze) dias de atraso, o acesso ao aplicativo e aos encontros fica suspenso até o pagamento. A suspensão não interrompe a contagem do prazo do contrato.</p>
+<p>6.4. Depois de 60 (sessenta) dias de atraso, o THE GROUP pode encaminhar a dívida para cobrança, extrajudicial ou judicial, e encerrar o contrato nos termos da cláusula 10.</p>
 <p style="margin:0">6.5. Antes de suspender o acesso, o THE GROUP avisa o MEMBRO pelo e-mail ou telefone informados neste contrato.</p>
 </div>
 
@@ -477,7 +444,7 @@ ${patro?`<p>5.4. O valor da cláusula 5.1 é pago pela RESPONSÁVEL FINANCEIRA, 
 <p>7.6. <b>A quebra do sigilo leva à exclusão imediata do MEMBRO</b>, sem devolução de valores pagos, além da responsabilidade pelas perdas e danos causados, nos termos da lei.</p>
 
 <h3>8. Conduta dentro do grupo</h3>
-<p>8.1. <b>Sem pitch.</b> O The Group é um lugar de conexão verdadeira. É proibido usar o grupo, os encontros ou os contatos dos membros para: (a) fazer pitch de venda ou oferecer produto ou serviço sem ter sido procurado; (b) enviar propaganda, lista de transmissão ou mensagem em massa aos membros; (c) prospectar membros de forma insistente ou agressiva; (d) qualquer comportamento predatório em relação a outro membro.</p>
+<p>8.1. <b>Sem pitch.</b> O The Group é um lugar de conexão verdadeira. É proibido usar o grupo, os encontros ou os contatos dos membros para: (a) fazer pitch de venda, oferecer produto ou serviço sem ter sido procurado; (b) enviar propaganda, lista de transmissão ou mensagem em massa aos membros; (c) prospectar membros de forma insistente ou agressiva; (d) qualquer comportamento predatório em relação a outro membro.</p>
 <p>8.2. <b>Reciprocidade.</b> O MEMBRO se compromete a tratar todos com respeito, contribuir de verdade com o grupo e ajudar quando puder.</p>
 <p>8.3. <b>Presença.</b> O valor do grupo está na convivência. O THE GROUP vai acompanhar e incentivar a presença do MEMBRO nos encontros e no aplicativo.</p>
 <p>8.4. <b>Lealdade.</b> É proibido agir de má-fé contra outro membro, como usar informação recebida no grupo para prejudicá-lo ou tirar proveito dele.</p>
@@ -489,28 +456,27 @@ ${patro?`<p>5.4. O valor da cláusula 5.1 é pago pela RESPONSÁVEL FINANCEIRA, 
 
 <h3>10. Saída e encerramento do contrato</h3>
 <p>10.1. <b>Direito de arrependimento.</b> O MEMBRO pode desistir deste contrato em até 7 (sete) dias contados do aceite, por e-mail para contato@ogrupo.com.br, e recebe de volta todo o valor pago, conforme o artigo 49 do Código de Defesa do Consumidor.</p>
-<div class="dest"><p style="margin:0">10.2. <b>Saída antecipada pelo MEMBRO.</b> Passado o prazo de arrependimento, se o MEMBRO quiser sair antes do fim dos 12 meses, deve avisar por escrito e pagar a multa de <b>30% (trinta por cento) do valor das parcelas que ainda faltam vencer</b>. ${ren?'A multa existe porque o valor mensal só existe com o compromisso do ano inteiro (cláusula 4.2).':'A multa existe porque, no primeiro ano, o THE GROUP já assume custos de hospedagem, alimentação e encontros com o MEMBRO.'} Quem pagou à vista não paga multa, e também não recebe devolução.</p></div>
-<p>10.3. <b>Exclusão por conduta.</b> O THE GROUP pode encerrar este contrato se o MEMBRO descumprir as regras de confidencialidade ou de conduta (cláusulas 7 e 8). Nesse caso, não há devolução de valores pagos, e o MEMBRO paga a mesma multa da cláusula 10.2.</p>
-<p>10.4. <b>Encerramento por falta de pagamento.</b> Com o atraso previsto na cláusula 6.4, o THE GROUP pode encerrar o contrato e cobrar as parcelas vencidas e a multa da cláusula 10.2.</p>
-<p>10.5. <b>Sem reembolso.</b> Fora do prazo de arrependimento, não há devolução proporcional de valores já pagos.</p>
-<p>10.6. Quem cumpre as regras fica no grupo até o fim do contrato, mesmo que tenha deixado o mercado ou esteja sem resultado.</p>
+<div class="dest"><p style="margin:0">10.2. <b>Saída pelo MEMBRO.</b> Passado o prazo de arrependimento, o MEMBRO pode deixar o grupo a qualquer momento, avisando por escrito. Não há devolução de valores já pagos, e os pagamentos combinados na cláusula 5.3 que ainda faltarem continuam devidos.</p></div>
+<p>10.3. <b>Exclusão por conduta.</b> O THE GROUP pode encerrar este contrato se o MEMBRO descumprir as regras de confidencialidade ou de conduta (cláusulas 7 e 8). Nesse caso, não há devolução de valores pagos, e os pagamentos combinados que ainda faltarem continuam devidos.</p>
+<p>10.4. <b>Encerramento por falta de pagamento.</b> Com o atraso previsto na cláusula 6.4, o THE GROUP pode encerrar o contrato e cobrar os valores em aberto.</p>
+<p>10.5. Quem cumpre as regras fica no grupo até o fim do contrato, mesmo que tenha deixado o mercado ou esteja sem resultado.</p>
 
 <div class="dest">
 <h3 style="margin-top:0">11. Renovação</h3>
-<p>11.1. Ao fim dos 12 meses, o MEMBRO pode renovar por mais 12 meses, pelo valor de <b>${brl(renov)}${extenso(renov)}</b> por ano.</p>
-<p>11.2. Pelo menos 60 (sessenta) dias antes do fim da vigência, o THE GROUP envia ao MEMBRO um resumo do seu ano no grupo e um link para confirmar a renovação. Nesse link, o MEMBRO escolhe como pagar: <b>(a) 12 cobranças mensais de ${brl(renovParc)}${extenso(renovParc)}</b>, uma por mês (não é um parcelamento de ${brl(renov)} no cartão); ou <b>(b) à vista, ${brl(renov)}${extenso(renov)}</b>, em um pagamento só.</p>
-<p>11.3. <b>A renovação só vale se o MEMBRO confirmar e fizer o primeiro pagamento.</b> Nenhum valor é cobrado sozinho no cartão já cadastrado: a cobrança ${ren?'deste contrato':'do primeiro ano'} termina na última parcela. Quem não confirmar até o fim da vigência deixa o grupo quando o contrato acabar, sem multa e sem dívida.</p>
-${ren?`<p>11.4. Nas próximas renovações, os encontros presenciais seguem as condições da cláusula 2.2.</p>`:`<p>11.4. Na renovação, os encontros presenciais deixam de ter tudo incluso. O MEMBRO continua com acesso ao grupo, aos encontros mensais e à The House, pagando a própria parte em cada encontro e o ingresso da The House, que é informado antes de cada edição.</p>`}
+<p>11.1. Ao fim dos 12 (doze) meses, o MEMBRO pode renovar por mais 12 (doze) meses, pelo valor de <b>${brl(renov)}${extenso(renov)}</b>, pago por um dos meios da cláusula 5.2.</p>
+<p>11.2. Pelo menos 60 (sessenta) dias antes do fim da vigência, o THE GROUP envia ao MEMBRO um resumo do seu ano no grupo e as condições da renovação.</p>
+<p>11.3. <b>A renovação só vale se o MEMBRO confirmar e fizer o pagamento combinado.</b> Nenhum valor é cobrado sozinho. Quem não confirmar até o fim da vigência deixa o grupo quando o contrato acabar, sem multa e sem dívida.</p>
+<p>11.4. Na renovação, os encontros presenciais não têm tudo incluso: o MEMBRO paga a própria parte em cada encontro e o ingresso da The House, que é informado antes de cada edição.</p>
 <p style="margin:0">11.5. Todas as demais cláusulas deste contrato continuam valendo na renovação.</p>
 </div>
 
 <h3>12. Uso de imagem</h3>
-<p>12.1. O THE GROUP só usa a imagem, o nome e a voz do MEMBRO em fotos, vídeos, redes sociais, site e podcast com a autorização do MEMBRO, marcada no momento do aceite deste contrato.</p>
-<p>12.2. O MEMBRO pode retirar essa autorização a qualquer momento, por e-mail. A retirada vale para novos conteúdos.</p>
+<p>12.1. O THE GROUP só usa a imagem, o nome e a voz do MEMBRO em fotos, vídeos, redes sociais, site e podcast com a autorização do MEMBRO, marcada no momento do aceite deste contrato, para divulgação do The Group, sem custo e pelo prazo deste contrato e da renovação.</p>
+<p>12.2. O MEMBRO pode retirar essa autorização a qualquer momento, por e-mail. A retirada vale para novos conteúdos e não obriga a apagar o que já foi publicado.</p>
 
 <h3>13. Dados pessoais</h3>
 <p>13.1. O THE GROUP usa os dados do MEMBRO só para cumprir este contrato: cadastro, cobrança, nota fiscal, organização dos encontros e acompanhamento.</p>
-<p>13.2. Os dados não são vendidos nem compartilhados com patrocinadores ou parceiros. Eles podem ser passados apenas ao meio de pagamento, à contabilidade e a fornecedores dos encontros (como hotel e restaurante), na medida do necessário.</p>
+<p>13.2. Os dados não são vendidos nem compartilhados com patrocinadores ou parceiros. Eles podem ser passados apenas aos meios de pagamento, à contabilidade e a fornecedores dos encontros (como hotel e restaurante), na medida do necessário.</p>
 <p>13.3. O MEMBRO pode pedir acesso, correção ou exclusão dos seus dados pelo e-mail contato@ogrupo.com.br, conforme a Lei Geral de Proteção de Dados (Lei nº 13.709/2018).</p>
 
 <h3>14. Disposições gerais</h3>
@@ -525,15 +491,15 @@ ${ren?`<p>14.1. Este contrato substitui o termo de adesão anterior a partir do 
 /* ---------- PÁGINA DO MEMBRO ---------- */
 let D=null, lido=false;
 function show(id){ ['carregando','invalido','preencher','membro'].forEach(x=>$('#'+x).classList.toggle('hide',x!==id)); }
-function dadosContrato(){ return {...C.dados, id:C.numero, anual:C.anual, desc:C.desconto, renov:C.renovacao, parcelas:12, tipo:C.tipo, inicio:C.inicio||(C.dados&&C.dados.inicio)||''}; }
+function dadosContrato(){ return {...C.dados, id:C.numero, anual:C.anual, renov:C.renovacao, meio:C.meio, condicoes:C.condicoes, tipo:C.tipo, inicio:C.inicio||(C.dados&&C.dados.inicio)||''}; }
 const ehRenov=()=>C&&C.tipo==='renovacao';
 const marca=()=>ehRenov()?'The Group · Contrato de renovação':'The Group · Contrato de adesão';
 function resumo(c){
   return `
-    <div><div class="k">Valor do contrato</div><div class="v">${brl(c.anual)} por ano</div><div class="s">${c.patro?'Pago pelo patrocinador no primeiro ano':c.mensal?(D.prox?`${c.parc}x de ${brl(c.parcela)}: 1ª no fechamento, depois todo dia ${esc(D.dia)} a partir de ${esc(dataBr(D.prox))}`:`${c.parc}x de ${brl(c.parcela)} por mês, todo dia ${esc(D.dia)}`):`À vista: ${brl(c.vista)}`}</div></div>
-    <div><div class="k">Vigência</div><div class="v">12 meses</div><div class="s">${ehRenov()&&D.inicio?`${esc(dt(D.inicio))} a ${esc(dt(fimVig(D.inicio)))}`:'A partir do primeiro pagamento'}</div></div>
+    <div><div class="k">Valor do contrato</div><div class="v">${brl(c.anual)}</div><div class="s">${c.patro?'Pago pelo patrocinador no primeiro ano':c.meio?`${esc(meioTxt(c.meio).replace(/^./,x=>x.toUpperCase()))}: ${esc(c.condicoes)}`:'Condições combinadas com o The Group'}</div></div>
+    <div><div class="k">Vigência</div><div class="v">12 meses</div><div class="s">${ehRenov()&&D.inicio?`${esc(dt(D.inicio))} a ${esc(dt(fimVig(D.inicio)))}`:'A partir da confirmação do pagamento'}</div></div>
     ${ehRenov()?`<div><div class="k">Encontros</div><div class="v">Você paga a sua parte</div><div class="s">Em cada encontro mensal, e o ingresso da The House é informado antes de cada edição</div></div>`:`<div><div class="k">Primeiro ano</div><div class="v">Tudo incluso</div><div class="s">The House com hospedagem e refeição nos encontros mensais. A passagem fica com você</div></div>`}
-    <div><div class="k">Renovação</div><div class="v">${brl(c.renov)} por ano</div><div class="s">Só se você confirmar: ${brl(c.renovParc)} por mês ou ${brl(c.renov)} à vista, com link enviado 60 dias antes</div></div>`;
+    <div><div class="k">Renovação</div><div class="v">${brl(c.renov)}</div><div class="s">Só se você confirmar e pagar. Nada é cobrado sozinho</div></div>`;
 }
 function registroHtml(r){
   const quando=new Date(r.aceito_em);
@@ -591,10 +557,7 @@ function renderForm(){
   show('preencher');
   form.reset(); $$('#form .bad').forEach(clearErr);
   if(C.dados) preencheForm(C.dados); else { form.nome.value=C.nome||''; form.tel.value=C.telefone||''; }
-  if(!form.prox.value) form.prox.value=sugereProx(); syncEnd();
-  // A data de pagamento é definida pelo Kayoan na central: o membro só vê.
-  if(C.prox){ form.prox.value=C.prox; $('#proxEdit').classList.add('hide'); $('#proxFixo').classList.remove('hide');
-    $('#proxFixoTxt').textContent=`1ª parcela no fechamento. As demais vencem todo dia ${+C.prox.slice(8)}, a partir de ${dataBr(C.prox)}.`; updPrices(); }
+  syncEnd();
   $('#saudP').textContent=`${(C.nome||'').split(' ')[0]}, faltam só os seus dados.`;
   form.dispatchEvent(new Event('change')); updPrices(); window.scrollTo(0,0);
 }
@@ -603,6 +566,7 @@ async function carregar(){
   try{ C=await rpc('abrir_contrato',{p_token:TOKEN}); }catch{ show('invalido'); return; }
   document.querySelectorAll('.brand').forEach(b=>{ if(/Contrato de/.test(b.textContent)) b.textContent=marca(); });
   if(!C||C.status==='invalido'){ show('invalido'); return; }
+  if(!C.meio&&['enviado','preenchido'].includes(C.status)){ $('#invalido').firstElementChild.innerHTML='<div class="brand" style="margin-bottom:10px">The Group</div>Este link é de um modelo de contrato que não vale mais.<br>Peça um link novo ao Kayoan pelo WhatsApp.'; show('invalido'); return; }
   if(C.status==='enviado') renderForm(); else renderContrato();
 }
 function onScroll(){
