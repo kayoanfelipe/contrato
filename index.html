@@ -109,6 +109,7 @@ textarea.msg{width:100%;font:inherit;font-size:13px;padding:10px 12px;border:1px
 .pdfdoc .contract{max-height:none;overflow:visible;font-size:11.5px;color:#333}
 .pdfdoc .reg{background:#f7f7f5}
 .pdfdoc p,.pdfdoc .dest{page-break-inside:avoid}
+.contract p.na{color:var(--muted);font-style:italic}
 </style>
 </head>
 <body>
@@ -181,6 +182,45 @@ textarea.msg{width:100%;font:inherit;font-size:13px;padding:10px 12px;border:1px
   <button class="btn gold" type="button" id="verContrato" style="width:100%;padding:16px">Ver meu contrato</button>
 </div>
 
+<!-- ============ EMPRESA PREENCHE (PATROCÍNIO) ============ -->
+<div class="wrap hide" id="preencherP">
+  <div class="brand">The Group · Dados da empresa</div>
+  <h1 id="saudPP"></h1>
+  <p class="lead">Leva uns 2 minutos. Com esses dados a gente monta o contrato de patrocínio, e o representante da empresa revisa tudo antes de aceitar. Os campos com <span style="color:var(--gold)">*</span> são obrigatórios.</p>
+  <form id="formP" autocomplete="on" novalidate>
+  <div class="card">
+    <h2>Empresa</h2>
+    <p class="sec">Comece pelo CNPJ: razão social e endereço aparecem sozinhos.</p>
+    <div class="grid">
+      <div><label class="f" for="p_cnpj">CNPJ <i>*</i></label><input type="text" id="p_cnpj" name="cnpj" inputmode="numeric" placeholder="00.000.000/0000-00"><div class="status" id="p_cnpjSt"></div><div class="ferr"></div></div>
+      <div><label class="f" for="p_marca">Nome da marca <i>*</i></label><input type="text" id="p_marca" name="marca" placeholder="Como aparece nas peças"><div class="ferr"></div></div>
+      <div class="full"><label class="f" for="p_rs">Razão social <i>*</i></label><input type="text" id="p_rs" name="rs"><div class="ferr"></div></div>
+      <div class="full"><label class="f" for="p_endpj">Endereço da sede, com CEP <i>*</i></label><input type="text" id="p_endpj" name="endpj"><div class="ferr"></div></div>
+      <div><label class="f" for="p_cidade">Cidade da sede</label><input type="text" id="p_cidade" name="cidade"></div>
+      <div><label class="f" for="p_emailnf">E-mail para a nota fiscal <i>*</i></label><input type="email" id="p_emailnf" name="emailnf"><div class="ferr"></div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Representante legal</h2>
+    <p class="sec">É quem aceita o contrato em nome da empresa e recebe o código de confirmação.</p>
+    <div class="grid">
+      <div class="full"><label class="f" for="p_rep_nome">Nome completo <i>*</i></label><input type="text" id="p_rep_nome" name="rep_nome" autocomplete="name"><div class="ferr"></div></div>
+      <div><label class="f" for="p_rep_cpf">CPF <i>*</i></label><input type="text" id="p_rep_cpf" name="rep_cpf" inputmode="numeric" placeholder="000.000.000-00"><div class="ferr"></div></div>
+      <div><label class="f" for="p_rep_cargo">Cargo <i>*</i></label><input type="text" id="p_rep_cargo" name="rep_cargo" placeholder="Sócio, diretor, administrador"><div class="ferr"></div></div>
+      <div><label class="f" for="p_rep_email">E-mail <i>*</i></label><input type="email" id="p_rep_email" name="rep_email" autocomplete="email"><div class="ferr"></div></div>
+      <div><label class="f" for="p_rep_tel">Celular (WhatsApp) <i>*</i></label><input type="text" id="p_rep_tel" name="rep_tel" inputmode="tel" autocomplete="tel" placeholder="(00) 00000-0000"><div class="ferr"></div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Cota e pagamento</h2>
+    <div class="total" id="totalP" style="margin-top:0"></div>
+  </div>
+</form>
+  <button class="btn gold" type="button" id="verContratoP" style="width:100%;padding:16px">Ver o contrato</button>
+</div>
+
 <!-- ============ PÁGINA DO CONTRATO ============ -->
 <div class="wrap hide" id="membro">
   <div class="brand">The Group · Contrato de adesão</div>
@@ -200,7 +240,7 @@ textarea.msg{width:100%;font:inherit;font-size:13px;padding:10px 12px;border:1px
   </div>
 
   <div id="aceiteArea" class="noprint">
-    <div class="card">
+    <div class="card" id="caixasCard">
       <h2>Antes de aceitar</h2>
       <label class="check"><input type="checkbox" class="ck" value="renovacao"><span>Entendi como funciona a <b>renovação</b>.<small>Depois de 12 meses, posso renovar por <span class="vRenov"></span>. Só renova se eu confirmar e fizer o pagamento combinado. Nada é cobrado sozinho.</small></span></label>
       <label class="check"><input type="checkbox" class="ck" value="saida e atraso"><span>Entendi a regra de <b>saída</b> e a de <b>atraso</b>.<small>Entendi que, depois dos 7 dias de arrependimento, não há devolução, e o que eu combinei de pagar continua devido. Pagamento atrasado tem multa de 2% e juros de 1% ao mês.</small></span></label>
@@ -208,7 +248,7 @@ textarea.msg{width:100%;font:inherit;font-size:13px;padding:10px 12px;border:1px
       <label class="check"><input type="checkbox" class="ck" value="li tudo"><span>Li o contrato inteiro e <b>concordo com todas as cláusulas</b>.</span></label>
     </div>
 
-    <div class="card">
+    <div class="card" id="imgCard">
       <h2>Uso de imagem</h2>
       <p style="margin:0 0 12px;font-size:14px;color:var(--ink-2)">Você autoriza o uso da sua imagem captada nos encontros e no podcast para divulgação do The Group?</p>
       <div class="seg">
@@ -488,12 +528,210 @@ ${ren?`<p>14.1. Este contrato substitui o termo de adesão anterior a partir do 
 }
 
 
+
+/* ---------- PATROCÍNIO (48-parceiros-patrocinio.sql) ----------
+   Texto: The Group Parceiros/contrato/Contrato de patrocínio (RASCUNHO).md, versão de 15/11/2026.
+   Mesma página, mesmo aceite: o tipo vem de C.publico. Numeração das cláusulas fixa. */
+const patro=()=>C&&C.publico==='patrocinio';
+const COTA_NOME={principal:'Parceiro principal',oficial:'Parceiro oficial',apoiador:'Apoiador'};
+const formP=$('#formP');
+['cnpj','rep_cpf','rep_tel'].forEach(k=>formP[k].addEventListener('input',e=>{ e.target.value=k==='cnpj'?masks.cnpj(e.target.value):k==='rep_cpf'?masks.cpf(e.target.value):masks.tel(e.target.value); }));
+formP.addEventListener('input',e=>{ if(e.target.classList.contains('bad')) clearErr(e.target); });
+formP.cnpj.addEventListener('input',async()=>{
+  const c=digits(formP.cnpj.value), st=$('#p_cnpjSt');
+  if(c.length<14||!cnpjOk(c)){ st.textContent=''; return; }
+  st.textContent='Buscando empresa…';
+  try{
+    const r=await fetch(`https://brasilapi.com.br/api/cnpj/v1/${c}`); if(!r.ok) throw 0; const j=await r.json();
+    formP.rs.value=j.razao_social||formP.rs.value;
+    formP.endpj.value=[[j.descricao_tipo_de_logradouro,j.logradouro].filter(Boolean).join(' '), j.numero, j.complemento, j.bairro, `${j.municipio||''}/${j.uf||''}`, j.cep?'CEP '+masks.cep(j.cep):''].filter(x=>x&&String(x).trim()&&x!=='/').join(', ');
+    if(j.municipio) formP.cidade.value=`${j.municipio}/${j.uf||''}`;
+    if(!formP.marca.value) formP.marca.value=j.nome_fantasia||'';
+    ['rs','endpj'].forEach(k=>clearErr(formP[k]));
+    st.textContent='Empresa encontrada. Confira os dados.';
+  }catch{ st.textContent='Não deu para buscar o CNPJ agora. Preencha à mão.'; }
+});
+function validarP(){
+  const f=formP, erros=[];
+  const req=(k,msg)=>{ if(!String(f[k].value).trim()){ setErr(f[k],msg); erros.push(f[k]); return false; } clearErr(f[k]); return true; };
+  if(req('cnpj','Coloque o CNPJ.') && !cnpjOk(f.cnpj.value)){ setErr(f.cnpj,'Esse CNPJ não é válido. Confira os números.'); erros.push(f.cnpj); }
+  req('marca','Coloque o nome da marca.'); req('rs','Coloque a razão social.'); req('endpj','Coloque o endereço da sede.');
+  if(req('emailnf','Coloque o e-mail da nota fiscal.') && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.emailnf.value)){ setErr(f.emailnf,'Esse e-mail parece incompleto.'); erros.push(f.emailnf); }
+  req('rep_nome','Coloque o nome completo do representante.');
+  if(req('rep_cpf','Coloque o CPF do representante.') && !cpfOk(f.rep_cpf.value)){ setErr(f.rep_cpf,'Esse CPF não é válido. Confira os números.'); erros.push(f.rep_cpf); }
+  req('rep_cargo','Coloque o cargo.');
+  if(req('rep_email','Coloque o e-mail do representante.') && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.rep_email.value)){ setErr(f.rep_email,'Esse e-mail parece incompleto.'); erros.push(f.rep_email); }
+  if(req('rep_tel','Coloque o celular.') && digits(f.rep_tel.value).length<10){ setErr(f.rep_tel,'Coloque o DDD e o número.'); erros.push(f.rep_tel); }
+  if(erros.length){ erros[0].scrollIntoView({behavior:'smooth',block:'center'}); erros[0].focus({preventScroll:true}); toast(erros.length===1?'Falta 1 campo.':`Faltam ${erros.length} campos.`); return false; }
+  return true;
+}
+const coletarP=()=>{ const d=Object.fromEntries(new FormData(formP)); Object.keys(d).forEach(k=>d[k]=String(d[k]).trim()); return d; };
+function renderFormP(){
+  show('preencherP');
+  formP.reset(); $$('#formP .bad').forEach(clearErr);
+  const d=C.dados||{marca:C.nome||'',rep_tel:C.telefone||''};
+  for(const k in d){ const el=formP.elements[k]; if(el) el.value=d[k]; }
+  $('#saudPP').textContent=`${C.nome||'Sua empresa'}, faltam só os dados da empresa.`;
+  $('#totalP').innerHTML=`Cota: <b>${esc(COTA_NOME[C.cota]||'')}</b>, segmento ${esc(C.segmento||'')}.<br>Valor da cota: <b>${brl(+C.anual)}</b> pelo ano, pago de uma vez.<br>Combinado com o The Group: <b>${esc(meioTxt(C.meio))}</b>, ${esc(C.condicoes||'')}.`;
+  window.scrollTo(0,0);
+}
+$('#verContratoP').onclick=async()=>{
+  if(!validarP()) return;
+  const b=$('#verContratoP'); b.disabled=true; b.textContent='Salvando…';
+  try{ await rpc('preencher_contrato',{p_token:TOKEN,p_dados:coletarP()}); fn('avisar').catch(()=>{}); await carregar(); }
+  catch(e){ toast(e.message); }
+  b.disabled=false; b.textContent='Ver o contrato';
+};
+const naoAplica=n=>`<h3>${n}</h3><p class="na">Cláusula não aplicável a esta cota.</p>`;
+const destP=t=>`<div class="dest"><p style="margin:0">${t}</p></div>`;
+function montarP(d){
+  const cota=d.cota, pri=cota==='principal', ofi=cota==='oficial', apo=cota==='apoiador', M=v(d.marca), benef=d.membro_beneficiado&&!apo;
+  const lista=xs=>xs.map((x,i)=>`(${'abcdefghi'[i]}) ${x}`).join('; ');
+  const entrega=pri?lista([
+    `<b>The House:</b> nas 2 (duas) edições do ano, a The House é "apresentada por" ${M}; logo grande e sozinho no backdrop principal; 3 (três) convites por edição; o brinde de abertura do evento (o momento de erguer as taças), feito por um representante da marca, sem palestra; presença da marca no vídeo do evento; e, a cada edição, a possibilidade de trazer uma experiência para a casa, por conta da PATROCINADORA e com aprovação do THE GROUP`,
+    `<b>Encontros mensais:</b> todo encontro é "apresentado por" ${M}, no convite, nas peças e no local; presença da marca com kit, brinde ou mesa, aprovados pelo THE GROUP; e um representante da PATROCINADORA em até 3 (três) encontros por ano, escolhidos em conjunto`,
+    `<b>Podcast do The Group:</b> agradecimento em destaque no encerramento de todo episódio publicado na vigência, e presença da marca nos cortes`,
+    `<b>Aplicativo:</b> primeiro lugar na aba de parceiros, com um benefício exclusivo para os membros, oferecido pela PATROCINADORA e definido em conjunto`,
+    `<b>Site:</b> logo grande na home de ogrupo.com.br e no topo de /parcerias, com link para o site da PATROCINADORA`,
+    `<b>Instagram:</b> marcação em todo conteúdo de encontro e de The House, e 6 (seis) posts em collab no ano, sendo 2 (dois) da The House e 4 (quatro) de encontros`,
+    `<b>3 (três) entradas no grupo</b> para clientes da PATROCINADORA, nos termos da cláusula 4`,
+    `<b>Relatório:</b> depois de cada evento, fotos, alcance e presença em número e perfil, sem nomes; e todo mês, visitas ao site e cliques no link da marca`,
+    `<b>Reunião de alinhamento</b> nos termos da cláusula 3.4`])
+  :ofi?lista([
+    `<b>The House:</b> presença nas 2 (duas) edições do ano; logo na parede de parceiros; 3 (três) convites por edição; e, a cada edição, a possibilidade de trazer uma experiência para a casa com o nome da marca (por exemplo, "o pôquer é da" ${M}), por conta da PATROCINADORA e com aprovação do THE GROUP`,
+    `<b>Encontros mensais:</b> presença da marca nos encontros com brinde, item no cardápio ou mesa, combinados com o THE GROUP e aprovados por ele; e um representante da PATROCINADORA em 1 (um) encontro por ano, escolhido em conjunto. Os encontros continuam apresentados pelo parceiro principal`,
+    `<b>Podcast do The Group:</b> agradecimento no encerramento, junto com os outros parceiros oficiais, e presença da marca nos cortes`,
+    `<b>Aplicativo:</b> logo e benefício na aba de parceiros, abaixo do parceiro principal`,
+    `<b>Site:</b> logo médio em ogrupo.com.br/parcerias, com link para o site da PATROCINADORA`,
+    `<b>Instagram:</b> marcação no conteúdo da The House e dos encontros em que a marca estiver presente, e 1 (um) post em collab no ano`,
+    `<b>Relatório:</b> a cada The House e nos encontros em que a marca estiver presente`,
+    `<b>Reunião de alinhamento</b> nos termos da cláusula 3.4`])
+  :lista([
+    `<b>Nos eventos:</b> a cada encontro e The House, as partes combinam se a marca entra com produto, como charuto personalizado, caixa de vinho ou brinde. O THE GROUP define o que é entregue aos membros e o que fica exposto no evento. O apoiador não aparece no backdrop nem nos cortes do podcast`,
+    `<b>Aplicativo:</b> benefício na aba de parceiros`,
+    `<b>Site:</b> logo pequeno em ogrupo.com.br/parcerias, com link para o site da PATROCINADORA`,
+    `<b>Instagram:</b> menção em story do evento em que o produto da marca entrou`]);
+  return {anual:+d.anual, cota, html:`
+<h3 class="t">Contrato de Patrocínio do The Group</h3>
+<p class="num">Contrato nº ${esc(d.id)}</p>
+
+<h3>As partes</h3>
+<p><b>THE GROUP LTDA</b>, sociedade empresária limitada inscrita no CNPJ sob o nº 68.185.930/0001-09, com sede em Florianópolis/SC, e-mail contato@ogrupo.com.br, neste ato representada pelo seu administrador, Kayoan Felipe Guadagnini, daqui em diante chamada <b>THE GROUP</b>.</p>
+<p>${v(d.rs)}, marca ${M}, inscrita no CNPJ sob o nº ${v(d.cnpj)}, com sede em ${v(d.endpj)}, neste ato representada por ${v(d.rep_nome)}, ${v(d.rep_cargo)}, inscrito(a) no CPF sob o nº ${v(d.rep_cpf)}, e-mail ${v(d.rep_email)}, telefone ${v(d.rep_tel)}, daqui em diante chamada <b>PATROCINADORA</b>.</p>
+<p>As partes celebram este contrato, que se rege pelas cláusulas abaixo.</p>
+
+<h3>1. O que é o The Group</h3>
+<p>1.1. O The Group é um grupo privado e restrito de empresários que atuam ou já atuaram no mercado de resposta direta. Durante o ano, o THE GROUP realiza: (a) encontros mensais regionais, em formatos como jantar, almoço, charuto, kart ou golfe; (b) duas edições por ano da The House; (c) o podcast do The Group, com episódios e cortes; (d) o aplicativo do The Group, com a aba de parceiros, aberta só para membros; (e) o site ogrupo.com.br, com a página /parcerias, que recebe tráfego pago todo mês; (f) conteúdo no Instagram de todo encontro e de toda The House.</p>
+<p>1.2. A PATROCINADORA contrata uma cota anual de patrocínio para ter a sua marca presente nessas frentes, nos termos deste contrato. A cota não dá à PATROCINADORA participação no grupo, acesso ao aplicativo dos membros nem acesso aos dados dos membros.</p>
+
+<h3>2. A cota contratada</h3>
+<p>2.1. A PATROCINADORA contrata a cota <b>${esc(COTA_NOME[cota]||'')}</b>, no segmento <b>${esc(d.segmento||'')}</b>.</p>
+<p>2.2. ${pri?'<b>Exclusividade.</b> Durante a vigência, nenhuma outra empresa do segmento da cláusula 2.1 entra em nenhum nível de patrocínio do THE GROUP. A cota de parceiro principal tem uma única vaga.'
+ :ofi?'<b>Exclusividade.</b> Durante a vigência, o THE GROUP não contrata outro parceiro oficial no segmento da cláusula 2.1. A cota de parceiro oficial tem até 4 (quatro) vagas, uma por segmento.'
+ :'A cota de apoiador tem até 6 (seis) vagas e não tem exclusividade de segmento, salvo no segmento do parceiro principal, que nenhum apoiador pode ocupar.'}</p>
+<p>2.3. O THE GROUP pode mudar datas, cidades, formatos e nomes dos encontros, da The House e do podcast ao longo do ano, avisando a PATROCINADORA com antecedência. O THE GROUP se compromete a realizar, durante a vigência, ao menos um encontro por mês e duas edições da The House.</p>
+
+<h3>3. O que a patrocinadora recebe</h3>
+<p>3.1. Durante a vigência, a PATROCINADORA recebe: ${entrega}.</p>
+<p>3.2. ${apo?'Cláusula não aplicável a esta cota.':'<b>Convites e representantes.</b> Os nomes dos convidados da The House e do representante nos encontros são informados ao THE GROUP com antecedência. O THE GROUP pode recusar um nome indicado, e a PATROCINADORA pode indicar outra pessoa no lugar. O convite dá acesso à edição da The House, com a alimentação e a bebida servidas no evento. Nos encontros mensais, a refeição do representante é por conta do THE GROUP. O deslocamento e a hospedagem dos convidados e dos representantes ficam por conta da PATROCINADORA. Convite não usado numa edição se perde e não passa para a edição seguinte.'}</p>
+<p>3.3. <b>Produto, brinde, ativação e experiência.</b> Tudo o que a PATROCINADORA levar aos eventos, como produto, brinde, kit, ativação ou experiência, é à parte do valor da cota, fica por conta dela e depende de aprovação prévia do THE GROUP sobre o que entra, como e quando.</p>
+<p>3.4. ${apo?'Cláusula não aplicável a esta cota.':'<b>Reunião de alinhamento.</b> Pelo menos uma vez a cada 90 (noventa) dias, as partes fazem uma reunião, presencial ou por vídeo, e podem marcar outras antes de um encontro ou de uma edição da The House. A reunião serve para definir o que a marca leva aos próximos eventos e para o THE GROUP apresentar os números do período: visibilidade, alcance, presença nos eventos e visitas e cliques vindos do The Group para o link da marca.'}</p>
+<p>3.5. <b>Começo das entregas.</b> As entregas começam depois que o THE GROUP confirma o pagamento (cláusula 6.1). Eventos que acontecerem antes disso não entram na cota.</p>
+
+${pri?`<h3>4. Entradas no grupo para clientes da patrocinadora</h3>
+<p>4.1. A PATROCINADORA pode indicar até 3 (três) clientes da sua empresa para entrar no grupo, em até 90 (noventa) dias a partir do início da vigência (cláusula 6.1). Passado esse prazo, as vagas não usadas se perdem. Cada indicado passa pela curadoria do THE GROUP, que pode recusar a indicação sem precisar justificar. Dentro do prazo, a PATROCINADORA pode indicar outra pessoa no lugar de quem foi recusado.</p>
+<p>4.2. Cada indicado aprovado aceita o próprio contrato de membro do The Group, como vaga paga pela PATROCINADORA, e segue todas as regras do grupo como qualquer outro membro. O valor dessas vagas já está incluído no valor da cota.</p>
+<p>4.3. O indicado tem acesso ao grupo, aos encontros mensais e às edições da The House, sem o tudo incluso. Na The House, ele não paga a entrada e tem a alimentação e a bebida servidas no evento. A hospedagem, o deslocamento e a própria parte nos encontros mensais ficam por conta dele. Cada indicado recebe um press kit da marca e do The Group na entrada.</p>
+<p>4.4. As vagas valem enquanto este contrato estiver ativo. Quando este contrato terminar, no fim da vigência sem renovação ou antes dele, o THE GROUP avisa os indicados e oferece a cada um continuar no grupo pagando a própria vaga. Quem não aceitar deixa o grupo. A PATROCINADORA não tem nenhuma obrigação sobre essas vagas depois do fim deste contrato.</p>
+<p>4.5. A PATROCINADORA não recebe dados dos indicados nem acesso ao grupo por ter pago as vagas.</p>`:naoAplica('4. Entradas no grupo para clientes da patrocinadora')}
+
+${benef?`<h3>5. Benefício para membro do grupo</h3>
+<p>5.1. A PATROCINADORA declara que ${v(d.membro_beneficiado)}, membro do The Group, é sócio(a) ou administrador(a) dela.</p>
+<p>5.2. Por contratar a cota de parceiro principal ou de parceiro oficial, depois que o THE GROUP confirmar o pagamento desta cota, o contrato de membro de ${v(d.membro_beneficiado)} ganha mais 6 (seis) meses de vigência, sem custo, somados ao fim do ciclo atual dele no grupo. O benefício não vale para a cota de apoiador.</p>
+<p>5.3. O benefício é concedido uma vez por contrato de patrocínio e não pode ser trocado por dinheiro ou desconto.</p>`:naoAplica('5. Benefício para membro do grupo')}
+
+<h3>6. Valor, pagamento e vigência</h3>
+<p>6.1. <b>Vigência.</b> Este contrato vale por 12 (doze) meses, a partir da data em que o THE GROUP confirmar o pagamento (ou o primeiro pagamento, quando o valor for pago em partes combinadas).</p>
+${destP(`6.2. <b>Valor.</b> O valor da cota é de <b>${brl(+d.anual)}${extenso(+d.anual)}</b> pelos 12 (doze) meses. O valor corresponde ao ano inteiro e não é cobrado em mensalidades.`)}
+<p>6.3. <b>Meios de pagamento.</b> O pagamento pode ser feito por um destes meios: (a) Pix ou transferência bancária, à vista ou em partes combinadas; (b) link de pagamento, no cartão de crédito, à vista ou parcelado, conforme as condições da plataforma; (c) criptomoeda; (d) Payoneer; (e) LootRush.</p>
+<p>6.4. O meio e as condições do pagamento foram combinados entre as partes antes deste aceite: ${v(meioTxt(d.meio))}, ${v(d.condicoes)}.</p>
+<p>6.5. No parcelamento pelo link de pagamento, as parcelas são cobradas pela plataforma no cartão da PATROCINADORA. Os juros e encargos do parcelamento, quando houver, ficam por conta dela.</p>
+<p>6.6. Nos pagamentos em criptomoeda ou em moeda estrangeira, vale a cotação do dia do pagamento, e o valor recebido pelo THE GROUP precisa corresponder ao valor em reais da cláusula 6.2.</p>
+<p>6.7. O THE GROUP emite nota fiscal de serviço do valor recebido, em nome da PATROCINADORA, enviada ao e-mail ${v(d.emailnf)}.</p>
+
+<h3>7. Atraso no pagamento</h3>
+<p>7.1. Esta cláusula vale só quando o pagamento for feito em partes combinadas diretamente com o THE GROUP (cláusula 6.3, a).</p>
+<p>7.2. Se uma parte combinada não for paga na data, o valor em atraso tem multa de 2% (dois por cento) e juros de 1% (um por cento) ao mês.</p>
+<p>7.3. Depois de 15 (quinze) dias de atraso, as entregas ficam suspensas até o pagamento, e a suspensão não interrompe a contagem da vigência. Para estar numa edição da The House, a PATROCINADORA precisa estar com as partes vencidas pagas antes do evento.</p>
+<p>7.4. Depois de 60 (sessenta) dias de atraso, o THE GROUP pode encerrar o contrato, cobrar os valores em aberto e reabrir a vaga para outra marca.</p>
+<p>7.5. Antes de suspender as entregas, o THE GROUP avisa a PATROCINADORA pelo e-mail do representante informado neste contrato.</p>
+
+<h3>8. Regras do patrocínio</h3>
+<p>8.1. <b>Sem link, afiliado ou comissão.</b> A PATROCINADORA entra só pela cota. O THE GROUP não faz parceria por link de indicação, afiliado ou comissão, e qualquer comissão de venda da PATROCINADORA fica com ela.</p>
+${destP('8.2. <b>Sem pitch.</b> A PATROCINADORA, seus representantes e convidados não fazem pitch de venda nos eventos, não oferecem produto ou serviço aos membros sem terem sido procurados e não abordam membros de forma insistente.')}
+${destP('8.3. <b>Dados dos membros.</b> A PATROCINADORA não tem acesso a dados ou contatos dos membros. É proibido coletar contatos de membros nos eventos por meio de listas, sorteios, formulários, QR codes ou qualquer outro meio, e usar o nome de membros na comunicação da marca sem autorização escrita da própria pessoa.')}
+<p>8.4. <b>Sigilo.</b> Tudo o que for dito nos eventos é confidencial. Os representantes e convidados da PATROCINADORA não gravam, não fotografam conversas internas e não revelam a terceiros quem são os membros ou o que foi dito por eles. A obrigação de sigilo continua valendo por 5 (cinco) anos depois do fim deste contrato.</p>
+<p>8.5. <b>Responsabilidade pelos representantes.</b> A PATROCINADORA responde pela conduta dos seus representantes e convidados nos eventos e garante que eles conhecem as regras desta cláusula.</p>
+<p>8.6. <b>O que o THE GROUP não promete.</b> O THE GROUP entrega a exposição e as ações descritas na cláusula 3 e mede os resultados nos relatórios previstos para a cota. O THE GROUP não promete vendas, faturamento, clientes, leads ou número mínimo de alcance.</p>
+
+<h3>9. Saída e encerramento do contrato</h3>
+${destP('9.1. <b>Saída pela PATROCINADORA.</b> A PATROCINADORA pode encerrar este contrato a qualquer momento, avisando por escrito. Como a cota é anual e a vaga fica reservada para a PATROCINADORA durante toda a vigência, não há devolução do valor pago, e as entregas que faltarem acabam na data do aviso. Se o pagamento for em partes combinadas, as partes que faltarem continuam devidas.')}
+<p>9.2. <b>Encerramento por descumprimento da PATROCINADORA.</b> Se a PATROCINADORA, seus representantes ou convidados descumprirem a cláusula 8 ou a cláusula 10, o THE GROUP envia uma notificação por escrito com prazo de 10 (dez) dias para corrigir. Se a falta se repetir, não for corrigida no prazo, ou for grave (como quebra de sigilo, coleta de dados de membros ou uso da marca do The Group de forma que o prejudique), o THE GROUP pode encerrar o contrato sem devolução do valor pago.</p>
+${destP('9.3. <b>Falha de entrega do THE GROUP.</b> Se uma entrega da cláusula 3 não for feita, a PATROCINADORA avisa o THE GROUP por escrito, dizendo qual entrega faltou. O THE GROUP tem 30 (trinta) dias a partir do aviso para fazer a entrega ou oferecer uma entrega equivalente, como estender a exposição da marca, levar a ação para outro evento ou somar entregas no período seguinte. Só se nada disso acontecer no prazo o THE GROUP devolve o valor proporcional à entrega que faltou, calculado sobre o valor da cota.')}
+<p>9.4. <b>Força maior.</b> Se um evento for cancelado ou adiado por motivo fora do controle das partes (como determinação de autoridade, condições climáticas ou problema grave no local), o THE GROUP marca nova data ou oferece uma entrega equivalente, na forma da cláusula 9.3.</p>
+<p>9.5. <b>Vaga reaberta.</b> Em qualquer encerramento antes do fim da vigência, a vaga é reaberta para outra marca, e a exposição da PATROCINADORA é retirada dos materiais novos. O conteúdo já publicado não precisa ser apagado.</p>
+
+<h3>10. Uso de marca</h3>
+<p>10.1. A PATROCINADORA autoriza o THE GROUP a usar o nome, a marca e a logo dela, sem custo e durante a vigência, nas entregas da cláusula 3: site, aplicativo, podcast, Instagram, peças, convites, backdrops, vídeos e materiais dos eventos. A PATROCINADORA envia a logo nos formatos pedidos pelo THE GROUP.</p>
+<p>10.2. A PATROCINADORA pode dizer que é patrocinadora do The Group, na cota contratada, durante a vigência. Peças da PATROCINADORA que usem o nome ou a logo do The Group dependem de aprovação prévia do THE GROUP.</p>
+<p>10.3. Cada parte continua dona da sua marca. Esta autorização não transfere nenhum direito sobre as marcas e acaba com o fim do contrato, mantido o conteúdo já publicado até então.</p>
+<p>10.4. A PATROCINADORA declara que é titular da marca e da logo que envia, ou que tem autorização para usá-las, e responde por qualquer questão de terceiros sobre elas.</p>
+
+<h3>11. Renovação</h3>
+<p>11.1. Pelo menos 90 (noventa) dias antes do fim da vigência, o THE GROUP envia à PATROCINADORA um resumo do ano com os números do relatório e as condições da renovação.</p>
+<p>11.2. O valor da renovação é combinado entre as partes na época e pode ser diferente do valor da cláusula 6.2.</p>
+<p>11.3. A PATROCINADORA tem preferência para renovar a mesma vaga até 60 (sessenta) dias antes do fim da vigência. Passado esse prazo sem confirmação, o THE GROUP pode oferecer a vaga a outra marca, inclusive do mesmo segmento.</p>
+${destP('11.4. <b>A renovação só vale se a PATROCINADORA confirmar e fizer o pagamento combinado.</b> Nenhum valor é cobrado sozinho.')}
+
+<h3>12. Dados pessoais</h3>
+<p>12.1. O THE GROUP usa os dados do representante da PATROCINADORA só para cumprir este contrato: cadastro, contato, nota fiscal e organização dos eventos.</p>
+<p>12.2. Os dados podem ser passados apenas aos meios de pagamento, à contabilidade e a fornecedores dos eventos, na medida do necessário, conforme a Lei Geral de Proteção de Dados (Lei nº 13.709/2018). Pedidos de acesso, correção ou exclusão vão para contato@ogrupo.com.br.</p>
+
+<h3>13. Disposições gerais</h3>
+<p>13.1. Este contrato não cria sociedade, vínculo de emprego ou representação comercial entre as partes. A única exclusividade é a da cláusula 2.2.</p>
+<p>13.2. A PATROCINADORA não pode ceder este contrato ou a cota a outra empresa sem autorização escrita do THE GROUP.</p>
+<p>13.3. Os avisos entre as partes são feitos pelo e-mail contato@ogrupo.com.br e pelo e-mail do representante informado neste contrato.</p>
+<p>13.4. Este contrato é aceito de forma eletrônica, nesta página, com confirmação por código enviado ao e-mail do representante da PATROCINADORA. O representante declara que tem poderes para assinar em nome dela. O aceite tem a mesma validade da assinatura em papel, conforme o artigo 10, §2º, da MP nº 2.200-2/2001.</p>
+<p>13.5. Fica eleito o foro da comarca de <b>Florianópolis/SC</b> para resolver qualquer questão sobre este contrato.</p>
+<p>A PATROCINADORA declara que leu todo este contrato, entendeu o que a cota entrega, as regras do patrocínio, as condições de pagamento, de saída e de renovação, e concorda com elas.</p>`};
+}
+function resumoP(){
+  return `
+    <div><div class="k">Cota</div><div class="v">${esc(COTA_NOME[C.cota]||'')}</div><div class="s">Segmento ${esc(C.segmento||'')}</div></div>
+    <div><div class="k">Valor</div><div class="v">${brl(+C.anual)}</div><div class="s">Pelo ano · ${esc(meioTxt(C.meio).replace(/^./,x=>x.toUpperCase()))}: ${esc(C.condicoes||'')}</div></div>
+    <div><div class="k">Vigência</div><div class="v">12 meses</div><div class="s">A partir da confirmação do pagamento. As entregas começam aí</div></div>
+    <div><div class="k">Regras</div><div class="v">Sem pitch</div><div class="s">Sem acesso a dados de membros, saída sem devolução, renovação só com confirmação</div></div>`;
+}
+function caixasP(){
+  const c=COTA_NOME[C.cota]||'';
+  const cx=[
+    ['li tudo',`Li o contrato inteiro e o que a cota <b>${esc(c)}</b> entrega.`,''],
+    ['valor e saida','Sei que o <b>valor é anual</b>, pago de uma vez pelo meio combinado, e que, se a empresa sair antes do fim, <b>não há devolução</b>.','Cláusula 9.1.'],
+    ['sem pitch e sigilo','Sei que a marca <b>não faz pitch de venda</b> nos eventos e que representantes e convidados seguem as regras de conduta e sigilo.','Cláusulas 8.2, 8.4 e 8.5.'],
+    ['dados dos membros','Sei que a empresa <b>não tem acesso a dados ou contatos dos membros</b> e não pode coletá-los nos eventos.','Cláusula 8.3.'],
+    ['produto a parte','Sei que produto, brinde, ativação e experiência são <b>à parte da cota</b>, por conta da empresa, e passam pela aprovação do The Group.','Cláusula 3.3.'],
+    ['uso de marca','Autorizo o The Group a <b>usar o nome e a logo</b> da empresa nas entregas da cota.','Cláusula 10.'],
+    ['poderes','Tenho <b>poderes para aceitar</b> este contrato em nome da empresa.','Cláusula 13.4.']];
+  if(C.cota==='principal') cx.push(['indicados','Sei que os <b>3 clientes indicados</b> passam pela curadoria, assinam o próprio contrato de membro e que a empresa não recebe dados deles.','Cláusula 4.']);
+  return `<h2>Antes de aceitar</h2>`+cx.map(([v_,t,s])=>`<label class="check"><input type="checkbox" class="ck" value="${v_}"><span>${t}${s?`<small>${s}</small>`:''}</span></label>`).join('');
+}
+
 /* ---------- PÁGINA DO MEMBRO ---------- */
 let D=null, lido=false;
-function show(id){ ['carregando','invalido','preencher','membro'].forEach(x=>$('#'+x).classList.toggle('hide',x!==id)); }
+function show(id){ ['carregando','invalido','preencher','preencherP','membro'].forEach(x=>$('#'+x).classList.toggle('hide',x!==id)); }
 function dadosContrato(){ return {...C.dados, id:C.numero, anual:C.anual, renov:C.renovacao, meio:C.meio, condicoes:C.condicoes, tipo:C.tipo, inicio:C.inicio||(C.dados&&C.dados.inicio)||''}; }
 const ehRenov=()=>C&&C.tipo==='renovacao';
-const marca=()=>ehRenov()?'The Group · Contrato de renovação':'The Group · Contrato de adesão';
+const marca=()=>patro()?'The Group · Contrato de patrocínio':ehRenov()?'The Group · Contrato de renovação':'The Group · Contrato de adesão';
 function resumo(c){
   return `
     <div><div class="k">Valor do contrato</div><div class="v">${brl(c.anual)}</div><div class="s">${c.patro?'Pago pelo patrocinador no primeiro ano':c.meio?`${esc(meioTxt(c.meio).replace(/^./,x=>x.toUpperCase()))}: ${esc(c.condicoes)}`:'Condições combinadas com o The Group'}</div></div>
@@ -503,6 +741,15 @@ function resumo(c){
 }
 function registroHtml(r){
   const quando=new Date(r.aceito_em);
+  if(patro()) return `
+    <div><span>Contrato</span>${esc(C.numero)}</div>
+    <div><span>Aceito por</span>${esc(D.rep_nome)}, ${esc(D.rep_cargo)} · CPF ${esc(D.rep_cpf)}, em nome de ${esc(D.rs)} · CNPJ ${esc(D.cnpj)}</div>
+    <div><span>Data e hora</span>${quando.toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo'})} (horário de Brasília)</div>
+    <div><span>Confirmação</span>${esc(r.aceite?.confirmacao||'código por e-mail')}</div>
+    <div><span>IP</span>${esc(r.aceite?.ip||'')}</div>
+    <div><span>Aparelho</span>${esc((r.aceite?.user_agent||'').slice(0,140))}</div>
+    <div><span>Cláusulas em destaque</span>valor anual e saída sem devolução, sem pitch, dados dos membros, uso de marca e poderes de quem assina: confirmadas uma a uma</div>
+    <div><span>Impressão digital do texto (SHA-256)</span>${esc(r.sha256)}</div>`;
   return `
     <div><span>Contrato</span>${esc(C.numero)}</div>
     <div><span>Aceito por</span>${esc(D.nome)} · CPF ${esc(D.cpf)}</div>
@@ -528,7 +775,7 @@ function mostraFeito(r){
   REG=r;
   $('#aceiteArea').classList.add('hide'); $('#feito').classList.remove('hide'); $('#corrigir').classList.add('hide');
   $('#reg').innerHTML=registroHtml(r);
-  $('#feitoTxt').innerHTML=`Baixe o PDF do seu contrato aqui. Este mesmo link continua abrindo a versão aceita sempre que você precisar. O Kayoan fala com você pelo WhatsApp para alinhar o pagamento.`;
+  $('#feitoTxt').innerHTML=`Baixe o PDF do seu contrato aqui. Este mesmo link continua abrindo a versão aceita sempre que você precisar. ${patro()?'O Kayoan fala com o representante da empresa pelo WhatsApp para alinhar o pagamento.':'O Kayoan fala com você pelo WhatsApp para alinhar o pagamento.'}`;
   $('#readHint').textContent='';
 }
 $('#baixar').onclick=async()=>{
@@ -538,21 +785,23 @@ $('#baixar').onclick=async()=>{
   b.disabled=false; b.textContent='Baixar PDF';
 };
 function renderContrato(){
-  D=dadosContrato();
-  const c=montar(D);
+  const P=patro();
+  D=P?{...C.dados, id:C.numero, anual:C.anual, meio:C.meio, condicoes:C.condicoes, cota:C.cota, segmento:C.segmento, membro_beneficiado:C.membro_beneficiado}:dadosContrato();
+  const c=P?montarP(D):montar(D);
   show('membro');
-  $('#saud').textContent=`${(D.nome||'').split(' ')[0]}, este é o seu contrato.`;
+  $('#saud').textContent=P?`${C.nome}, este é o contrato de patrocínio.`:`${(D.nome||'').split(' ')[0]}, este é o seu contrato.`;
   $('#contrato').innerHTML=(C.status==='aceito'||C.status==='pago')&&C.html?C.html:c.html;
-  $('#sum').innerHTML=resumo(c);
-  $$('.vRenov').forEach(e=>e.textContent=brl(c.renov));
-  $('#emailMask').textContent=D.email||'';
+  $('#sum').innerHTML=P?resumoP():resumo(c);
+  if(P){ $('#caixasCard').innerHTML=caixasP(); $('#imgCard').classList.add('hide'); $('#corrigir').textContent='Corrigir os dados da empresa'; $('#codTxt').firstChild.textContent='Para confirmar que é o representante da empresa, mandamos um código de 6 dígitos para o e-mail '; }
+  else $$('.vRenov').forEach(e=>e.textContent=brl(c.renov));
+  $('#emailMask').textContent=(P?D.rep_email:D.email)||'';
   $('#corrigir').classList.toggle('hide',!(C.modo==='membro'&&C.status==='preenchido'));
   if(C.status==='aceito'||C.status==='pago'){ mostraFeito({aceito_em:C.aceito_em,sha256:C.sha256,aceite:C.aceite}); lido=true; return; }
   $('#aceiteArea').classList.remove('hide'); $('#feito').classList.add('hide');
   lido=false; $('#bar').style.width='0'; window.scrollTo(0,0);
   setTimeout(onScroll,50); check();
 }
-$('#corrigir').onclick=()=>{ show('preencher'); window.scrollTo(0,0); };
+$('#corrigir').onclick=()=>{ show(patro()?'preencherP':'preencher'); window.scrollTo(0,0); };
 function renderForm(){
   show('preencher');
   form.reset(); $$('#form .bad').forEach(clearErr);
@@ -567,7 +816,7 @@ async function carregar(){
   document.querySelectorAll('.brand').forEach(b=>{ if(/Contrato de/.test(b.textContent)) b.textContent=marca(); });
   if(!C||C.status==='invalido'){ show('invalido'); return; }
   if(!C.meio&&['enviado','preenchido'].includes(C.status)){ $('#invalido').firstElementChild.innerHTML='<div class="brand" style="margin-bottom:10px">The Group</div>Este link é de um modelo de contrato que não vale mais.<br>Peça um link novo ao Kayoan pelo WhatsApp.'; show('invalido'); return; }
-  if(C.status==='enviado') renderForm(); else renderContrato();
+  if(C.status==='enviado') (patro()?renderFormP():renderForm()); else renderContrato();
 }
 function onScroll(){
   const el=$('#contrato'); const p=(el.scrollTop+el.clientHeight)/el.scrollHeight;
@@ -577,7 +826,7 @@ function onScroll(){
 $('#contrato').addEventListener('scroll',onScroll);
 let codPedido=false;
 function check(){
-  const ok=lido && $$('.ck').every(x=>x.checked) && document.querySelector('input[name=img]:checked') && codPedido && /^\d{6}$/.test($('#cod').value);
+  const ok=lido && $$('.ck').every(x=>x.checked) && (patro()||document.querySelector('input[name=img]:checked')) && codPedido && /^\d{6}$/.test($('#cod').value);
   $('#aceitar').disabled=!ok;
   $$('.ck').forEach(x=>x.disabled=!lido);
 }
@@ -593,7 +842,7 @@ $('#enviarCod').onclick=async()=>{
 $('#aceitar').onclick=async()=>{
   const b=$('#aceitar'); b.disabled=true; b.textContent='Registrando o aceite…'; $('#codErr').classList.add('hide');
   try{
-    const r=await fn('aceitar',{codigo:$('#cod').value,texto:$('#contrato').innerText,imagem:document.querySelector('input[name=img]:checked').value,
+    const r=await fn('aceitar',{codigo:$('#cod').value,texto:$('#contrato').innerText,imagem:patro()?'':document.querySelector('input[name=img]:checked').value,
       html:$('#contrato').innerHTML,caixas:$$('.ck').filter(x=>x.checked).map(x=>x.value),ua:navigator.userAgent,fuso:Intl.DateTimeFormat().resolvedOptions().timeZone});
     C.status='aceito'; C.html=$('#contrato').innerHTML; mostraFeito(r); $('#feito').scrollIntoView({behavior:'smooth'}); toast('Contrato aceito.');
   }catch(e){ $('#codErr').textContent=e.message; $('#codErr').classList.remove('hide'); b.disabled=false; b.textContent='Aceitar contrato'; }
