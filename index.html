@@ -926,7 +926,7 @@ async function pdfBlob(r){
   doc.className='pdfdoc';
   doc.innerHTML=`<div class="brand" style="margin-bottom:12px">${marca()}</div><div class="contract">${c.html}</div><h3 style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;margin:24px 0 8px">Registro do aceite eletrônico</h3><div class="reg">${registroHtml(r)}</div>`;
   const y=window.scrollY; window.scrollTo(0,0);
-  const blob=await html2pdf().set({margin:[12,12,14,12],filename:`Contrato The Group ${C.numero}.pdf`,image:{type:'jpeg',quality:.92},html2canvas:{scale:2,useCORS:true,letterRendering:true},jsPDF:{unit:'mm',format:'a4'},pagebreak:{mode:['css'],avoid:['p','.dest','h3','.reg div']}}).from(doc).outputPdf('blob');
+  const blob=await html2pdf().set({margin:[12,12,14,12],filename:`${conv()?'Termos do convidado':'Contrato'} The Group ${C.numero}.pdf`,image:{type:'jpeg',quality:.92},html2canvas:{scale:2,useCORS:true,letterRendering:true},jsPDF:{unit:'mm',format:'a4'},pagebreak:{mode:['css'],avoid:['p','.dest','h3','.reg div']}}).from(doc).outputPdf('blob');
   window.scrollTo(0,y);
   return blob;
 }
@@ -935,12 +935,13 @@ function mostraFeito(r){
   REG=r;
   $('#aceiteArea').classList.add('hide'); $('#feito').classList.remove('hide'); $('#corrigir').classList.add('hide');
   $('#reg').innerHTML=registroHtml(r);
-  $('#feitoTxt').innerHTML=`Baixe o PDF do seu contrato aqui. Este mesmo link continua abrindo a versão aceita sempre que você precisar. ${conv()?'Baixe o PDF dos seus termos aqui. O Kayoan fala com você pelo WhatsApp para liberar o seu acesso ao grupo.':patro()?'O Kayoan fala com o representante da empresa pelo WhatsApp para alinhar o pagamento.':'O Kayoan fala com você pelo WhatsApp para alinhar o pagamento.'}`;
+  $('#feito h1').textContent=conv()?'Termos aceitos.':'Contrato aceito.';
+  $('#feitoTxt').innerHTML=`Baixe o PDF ${conv()?'dos seus termos':'do seu contrato'} aqui. Este mesmo link continua abrindo a versão aceita sempre que você precisar. ${conv()?'O Kayoan fala com você pelo WhatsApp para liberar o seu acesso ao grupo.':patro()?'O Kayoan fala com o representante da empresa pelo WhatsApp para alinhar o pagamento.':'O Kayoan fala com você pelo WhatsApp para alinhar o pagamento.'}`;
   $('#readHint').textContent='';
 }
 $('#baixar').onclick=async()=>{
   const b=$('#baixar'); b.disabled=true; b.textContent='Gerando o PDF…';
-  try{ const blob=await pdfBlob(REG); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`Contrato The Group ${C.numero}.pdf`; document.body.appendChild(a); a.click(); a.remove(); }
+  try{ const blob=await pdfBlob(REG); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`${conv()?'Termos do convidado':'Contrato'} The Group ${C.numero}.pdf`; document.body.appendChild(a); a.click(); a.remove(); }
   catch{ toast('Não deu para gerar o PDF agora. Tente de novo.'); }
   b.disabled=false; b.textContent='Baixar PDF';
 };
@@ -953,7 +954,7 @@ function renderContrato(){
   $('#contrato').innerHTML=(C.status==='aceito'||C.status==='pago')&&C.html?C.html:c.html;
   $('#sum').innerHTML=CV?resumoC():P?resumoP():resumo(c);
   $('#anuBox').classList.toggle('hide',!CV);
-  if(CV){ $('#caixasCard').innerHTML=caixasC(); $('#corrigir').textContent='Corrigir meus dados'; }
+  if(CV){ $('#caixasCard').innerHTML=caixasC(); $('#corrigir').textContent='Corrigir meus dados'; $('#aceitar').textContent='Aceitar os termos'; $('#contrato').previousElementSibling.textContent='Termos'; }
   else if(P){ $('#caixasCard').innerHTML=caixasP(); $('#imgCard').classList.add('hide'); $('#corrigir').textContent='Corrigir os dados da empresa'; $('#codTxt').firstChild.textContent='Para confirmar que é o representante da empresa, mandamos um código de 6 dígitos para o e-mail '; }
   else $$('.vRenov').forEach(e=>e.textContent=brl(c.renov));
   $('#emailMask').textContent=(P?D.rep_email:D.email)||'';
@@ -983,7 +984,7 @@ async function carregar(){
 function onScroll(){
   const el=$('#contrato'); const p=(el.scrollTop+el.clientHeight)/el.scrollHeight;
   $('#bar').style.width=Math.min(100,p*100)+'%';
-  if(p>.98 && !lido){ lido=true; $('#readHint').textContent='Contrato lido até o fim.'; check(); }
+  if(p>.98 && !lido){ lido=true; $('#readHint').textContent=conv()?'Termos lidos até o fim.':'Contrato lido até o fim.'; check(); }
 }
 $('#contrato').addEventListener('scroll',onScroll);
 let codPedido=false;
@@ -1006,8 +1007,8 @@ $('#aceitar').onclick=async()=>{
   try{
     const r=await fn('aceitar',{codigo:$('#cod').value,texto:$('#contrato').innerText,imagem:patro()?'':document.querySelector('input[name=img]:checked').value,anuncio:conv()?document.querySelector('input[name=anu]:checked').value:'',
       html:$('#contrato').innerHTML,caixas:$$('.ck').filter(x=>x.checked).map(x=>x.value),ua:navigator.userAgent,fuso:Intl.DateTimeFormat().resolvedOptions().timeZone});
-    C.status='aceito'; C.html=$('#contrato').innerHTML; mostraFeito(r); $('#feito').scrollIntoView({behavior:'smooth'}); toast('Contrato aceito.');
-  }catch(e){ $('#codErr').textContent=e.message; $('#codErr').classList.remove('hide'); b.disabled=false; b.textContent='Aceitar contrato'; }
+    C.status='aceito'; C.html=$('#contrato').innerHTML; mostraFeito(r); $('#feito').scrollIntoView({behavior:'smooth'}); toast(conv()?'Termos aceitos.':'Contrato aceito.');
+  }catch(e){ $('#codErr').textContent=e.message; $('#codErr').classList.remove('hide'); b.disabled=false; b.textContent=conv()?'Aceitar os termos':'Aceitar contrato'; }
 };
 carregar();
 })();
