@@ -964,7 +964,7 @@ function renderContrato(){
   lido=false; $('#bar').style.width='0'; window.scrollTo(0,0);
   setTimeout(onScroll,50); check();
 }
-$('#corrigir').onclick=()=>{ show(conv()?'preencherC':patro()?'preencherP':'preencher'); window.scrollTo(0,0); };
+$('#corrigir').onclick=()=>{ conv()?renderFormC():patro()?renderFormP():renderForm(); window.scrollTo(0,0); };
 function renderForm(){
   show('preencher');
   form.reset(); $$('#form .bad').forEach(clearErr);
