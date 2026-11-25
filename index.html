@@ -56,6 +56,10 @@ input:focus,select:focus{outline:2px solid var(--gold);outline-offset:-1px}
 .progress{height:3px;background:var(--line);border-radius:3px;margin-top:12px;overflow:hidden}
 .progress i{display:block;height:100%;width:0;background:var(--gold);transition:width .2s}
 .hint{font-size:12px;color:var(--muted);margin-top:6px}
+.gate{font-size:13px;color:#7a5a24;background:#fbf7f0;border:1px solid #ecdcbf;border-radius:10px;padding:10px 12px;margin:0 0 14px}
+.check.locked{opacity:.55}
+.pulse{animation:pulse 1.2s ease 2}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(184,138,68,0)}50%{box-shadow:0 0 0 4px rgba(184,138,68,.45)}}
 .check{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-top:1px solid var(--line);font-size:14px;cursor:pointer}
 .check:first-of-type{border-top:none}
 .check input{margin-top:4px;width:18px;height:18px;accent-color:var(--gold);flex:none}
@@ -271,6 +275,7 @@ textarea.msg{width:100%;font:inherit;font-size:13px;padding:10px 12px;border:1px
   </div>
 
   <div id="aceiteArea" class="noprint">
+    <p class="gate noprint" id="gateHint">As caixas abaixo liberam depois que você rolar o texto acima até o fim, dentro do quadro.</p>
     <div class="card" id="caixasCard">
       <h2>Antes de aceitar</h2>
       <label class="check"><input type="checkbox" class="ck" value="renovacao"><span>Entendi como funciona a <b>renovação</b>.<small>Depois de 12 meses, posso renovar por <span class="vRenov"></span>. Só renova se eu confirmar e fizer o pagamento combinado. Nada é cobrado sozinho.</small></span></label>
@@ -618,7 +623,7 @@ const TP={
     eEmailNf:'Coloque o e-mail da nota fiscal.',eEmailInv:'Esse e-mail parece incompleto.',eNome:'Coloque o nome completo do representante.',eCpf:'Coloque o CPF do representante.',eCpfInv:'Esse CPF não é válido. Confira os números.',eDoc:'Coloque o número do passaporte ou do documento.',
     eCargo:'Coloque o cargo.',eEmail:'Coloque o e-mail do representante.',eTel:'Coloque o celular.',eTelInv:'Coloque o DDD e o número.',eTelInvEx:'Coloque o número com o código do país.',
     brand:'The Group · Contrato de patrocínio',saud:n=>`${n}, este é o contrato de patrocínio.`,lead:'Leia com calma. Se tiver qualquer dúvida, fale com o Kayoan antes de aceitar.',corrigir:'Corrigir os dados da empresa',
-    sumT:'Resumo',contT:'Contrato',readHint:'Role até o fim para liberar o aceite.',lido:'Contrato lido até o fim.',confT:'Confirmação',codTxt:'Para confirmar que é o representante da empresa, mandamos um código de 6 dígitos para o e-mail ',
+    sumT:'Resumo',contT:'Contrato',readHint:'Role até o fim para liberar o aceite.',gate:'As caixas abaixo liberam depois que você rolar o texto acima até o fim, dentro do quadro.',trava:'Primeiro role o contrato até o fim, dentro do quadro. Depois as caixas liberam.',lido:'Contrato lido até o fim.',confT:'Confirmação',codTxt:'Para confirmar que é o representante da empresa, mandamos um código de 6 dígitos para o e-mail ',
     enviar:'Enviar código',reenviar:'Reenviar código',codEnviado:e=>`Código enviado para ${e}.`,aceitar:'Aceitar contrato',registrando:'Registrando o aceite…',aceito:'Contrato aceito.',
     aceHint:'Ao aceitar, registramos data, hora, IP, aparelho e uma cópia exata do texto. Depois é só baixar o PDF.',
     feito:'Baixe o PDF do seu contrato aqui. Este mesmo link continua abrindo a versão aceita sempre que você precisar. O Kayoan fala com o representante da empresa pelo WhatsApp para alinhar o pagamento.',baixar:'Baixar PDF',gerandoPdf:'Gerando o PDF…'},
@@ -634,7 +639,7 @@ const TP={
     eEmailNf:'Enter the invoice e-mail.',eEmailInv:'This e-mail looks incomplete.',eNome:'Enter the representative full name.',eCpf:'Enter the representative CPF.',eCpfInv:'This CPF is not valid. Check the numbers.',eDoc:'Enter the passport or ID number.',
     eCargo:'Enter the title.',eEmail:'Enter the representative e-mail.',eTel:'Enter the mobile number.',eTelInv:'Enter the area code and number.',eTelInvEx:'Enter the number with the country code.',
     brand:'The Group · Sponsorship contract',saud:n=>`${n}, this is the sponsorship contract.`,lead:'Read it carefully. If you have any questions, talk to Kayoan before accepting.',corrigir:'Correct the company details',
-    sumT:'Summary',contT:'Contract',readHint:'Scroll to the end to unlock acceptance.',lido:'Contract read to the end.',confT:'Confirmation',codTxt:'To confirm you are the company representative, we send a 6-digit code to the e-mail ',
+    sumT:'Summary',contT:'Contract',readHint:'Scroll to the end to unlock acceptance.',gate:'The boxes below unlock after you scroll the text above to the end, inside the frame.',trava:'First scroll the contract to the end, inside the frame. Then the boxes unlock.',lido:'Contract read to the end.',confT:'Confirmation',codTxt:'To confirm you are the company representative, we send a 6-digit code to the e-mail ',
     enviar:'Send code',reenviar:'Resend code',codEnviado:e=>`Code sent to ${e}.`,aceitar:'Accept contract',registrando:'Recording the acceptance…',aceito:'Contract accepted.',
     aceHint:'When you accept, we record the date, time, IP, device and an exact copy of the text, in Portuguese, which is the version that is accepted. Then you can download the PDF.',
     feito:'Download the PDF of the contract here. This same link keeps opening the accepted version whenever you need it. Kayoan will contact the company representative on WhatsApp to arrange the payment.',baixar:'Download PDF',gerandoPdf:'Creating the PDF…'}};
@@ -1258,16 +1263,24 @@ $('#langSw').addEventListener('click',e=>{
 function onScroll(){
   const el=$('#contrato'); const p=(el.scrollTop+el.clientHeight)/el.scrollHeight;
   $('#bar').style.width=Math.min(100,p*100)+'%';
-  if(p>.98 && !lido){ lido=true; $('#readHint').textContent=conv()?'Termos lidos até o fim.':patro()?tp('lido'):'Contrato lido até o fim.'; check(); }
+  if((p>.98 || el.scrollTop+el.clientHeight>=el.scrollHeight-40) && !lido){ lido=true; $('#readHint').textContent=conv()?'Termos lidos até o fim.':patro()?tp('lido'):'Contrato lido até o fim.'; check(); }
 }
 $('#contrato').addEventListener('scroll',onScroll);
 let codPedido=false;
 function check(){
   const ok=lido && $$('.ck').every(x=>x.checked) && (patro()||document.querySelector('input[name=img]:checked')) && (!conv()||document.querySelector('input[name=anu]:checked')) && codPedido && /^\d{6}$/.test($('#cod').value);
   $('#aceitar').disabled=!ok;
-  $$('.ck').forEach(x=>x.disabled=!lido);
+  $$('.ck').forEach(x=>{ x.disabled=!lido; const l=x.closest('.check'); if(l) l.classList.toggle('locked',!lido); });
+  const g=$('#gateHint'); if(g){ g.classList.toggle('hide',lido); if(patro()) g.textContent=tp('gate'); else g.textContent=conv()?'As caixas abaixo liberam depois que você rolar os termos acima até o fim, dentro do quadro.':'As caixas abaixo liberam depois que você rolar o contrato acima até o fim, dentro do quadro.'; }
 }
 document.addEventListener('change',check);
+/* Caixa travada: explica e leva até o texto */
+document.addEventListener('click',e=>{
+  const l=e.target.closest&&e.target.closest('#caixasCard .check'); if(!l||lido) return;
+  e.preventDefault();
+  toast(patro()?tp('trava'):conv()?'Primeiro role os termos até o fim, dentro do quadro. Depois as caixas liberam.':'Primeiro role o contrato até o fim, dentro do quadro. Depois as caixas liberam.');
+  const c=$('#contrato'); c.scrollIntoView({behavior:'smooth',block:'center'}); c.classList.remove('pulse'); void c.offsetWidth; c.classList.add('pulse');
+},true);
 $('#cod').addEventListener('input',()=>{ $('#cod').value=$('#cod').value.replace(/\D/g,''); $('#codErr').classList.add('hide'); check(); });
 $('#enviarCod').onclick=async()=>{
   const b=$('#enviarCod'); b.disabled=true;
