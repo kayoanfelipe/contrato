@@ -351,6 +351,18 @@ const extenso=n=>{ const s=extReais(n); return s?` (${s})`:''; };
 const dt=s=>{ if(!s) return '____'; const [y,mo,d]=s.split('-'); return `${d}/${mo}/${y}`; };
 const fimVig=s=>{ if(!s) return ''; const d=new Date(s+'T12:00:00'); d.setFullYear(d.getFullYear()+1); d.setDate(d.getDate()-1); return d.toISOString().slice(0,10); };
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+/* Segurança (26/11/2026): o HTML guardado no aceite passa por aqui antes de aparecer. Só ficam as tags e os
+   atributos (class, style sem url) do modelo do contrato; o resto vira texto ou some. */
+const TAGS_OK=new Set(['DIV','P','B','STRONG','I','EM','U','SPAN','H1','H2','H3','H4','BR','SMALL','OL','UL','LI','TABLE','THEAD','TBODY','TR','TD','TH','HR','SUP','SUB','SECTION']);
+function limpo(html){
+  const doc=new DOMParser().parseFromString('<body>'+String(html||'')+'</body>','text/html');
+  const passa=el=>{ for(const k of [...el.children]){
+    if(!TAGS_OK.has(k.tagName)){ k.replaceWith(document.createTextNode(k.textContent||'')); continue; }
+    for(const a of [...k.attributes]){ const n=a.name.toLowerCase();
+      if(!(n==='class'||(n==='style'&&!/url\s*\(|expression|javascript|@import/i.test(a.value)))) k.removeAttribute(a.name); }
+    passa(k); } };
+  passa(doc.body); return doc.body.innerHTML;
+}
 const v=(x,f='____')=>x? `<b>${esc(x)}</b>`:`<span class="pending">${f}</span>`;
 function toast(t){const e=$('#toast');e.textContent=t;e.classList.remove('hide');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.add('hide'),4200);}
 const TOKEN=(new URLSearchParams(location.search).get('c')||'').toLowerCase().trim();
@@ -1170,7 +1182,7 @@ function registroHtml(r,enReg=false){
     <div><span>Impressão digital do texto (SHA-256)</span>${esc(r.sha256)}</div>`;
 }
 async function pdfBlob(r){
-  const c={html:C.html||montar(D).html}, doc=document.createElement('div');
+  const c={html:C.html?limpo(C.html):montar(D).html}, doc=document.createElement('div');
   doc.className='pdfdoc';
   doc.innerHTML=`<div class="brand" style="margin-bottom:12px">${marca()}</div><div class="contract">${c.html}</div><h3 style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;margin:24px 0 8px">Registro do aceite eletrônico</h3><div class="reg">${registroHtml(r)}</div>`;
   const y=window.scrollY; window.scrollTo(0,0);
@@ -1201,7 +1213,7 @@ function renderContrato(manter=false){
   const c=CV?montarC(D):P?(en()?montarPen(D):montarP(D)):montar(D);
   show('membro');
   $('#saud').textContent=CV?`${(D.nome||'').split(' ')[0]}, estes são os seus termos de convidado.`:P?tp('saud')(C.nome):`${(D.nome||'').split(' ')[0]}, este é o seu contrato.`;
-  $('#contrato').innerHTML=(C.status==='aceito'||C.status==='pago')&&C.html&&!(P&&en())?C.html:c.html;
+  $('#contrato').innerHTML=(C.status==='aceito'||C.status==='pago')&&C.html&&!(P&&en())?limpo(C.html):c.html;
   $('#sum').innerHTML=CV?resumoC():P?resumoP():resumo(c);
   $('#anuBox').classList.toggle('hide',!CV);
   if(CV){ $('#caixasCard').innerHTML=caixasC(); $('#corrigir').textContent='Corrigir meus dados'; $('#aceitar').textContent='Aceitar os termos'; $('#contrato').previousElementSibling.textContent='Termos'; }
